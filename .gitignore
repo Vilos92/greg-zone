@@ -1,3 +1,6 @@
+# Environment variables (keep .env.example)
+.env
+
 # copyparty configuration
 copyparty/copyparty.conf
 
