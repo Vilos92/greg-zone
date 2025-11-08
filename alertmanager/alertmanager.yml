@@ -1,0 +1,25 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@greg-zone.local'
+
+route:
+  group_by: ['alertname', 'container_name']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 30m
+  receiver: 'discord-webhook'
+  routes:
+  - match:
+      severity: critical
+    receiver: 'discord-webhook'
+    repeat_interval: 30m
+  - match:
+      severity: warning
+    receiver: 'discord-webhook'
+    repeat_interval: 2h
+
+receivers:
+- name: 'discord-webhook'
+  webhook_configs:
+  - url: 'http://discord-webhook:8080/webhook/container-health'
+    send_resolved: true

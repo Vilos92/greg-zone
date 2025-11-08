@@ -1,0 +1,159 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker container logs
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    
+    relabel_configs:
+      # Extract container name from Docker metadata
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container_name'
+      # Extract container ID for filename
+      - source_labels: ['__meta_docker_container_id']
+        target_label: 'container_id'
+      # Set the log file path
+      - source_labels: ['__meta_docker_container_id']
+        target_label: '__path__'
+        replacement: '/var/lib/docker/containers/${1}/${1}-json.log'
+      # Add job label
+      - target_label: 'job'
+        replacement: 'docker'
+
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<container_name>(?:[^|]*))\|
+          source: tag
+      - timestamp:
+          format: RFC3339Nano
+          source: time
+      - labels:
+          stream:
+          container_name:
+      # Minecraft-specific parsing for minecraft container - only player events
+      - match:
+          selector: '{container_name="minecraft"} |~ "Player (connected|disconnected):"'
+          stages:
+            - regex:
+                expression: '\[(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}:\d{3} \w+)\] (?P<message>.*)'
+                source: output
+            - regex:
+                expression: 'Player connected: (?P<player_name>\w+), xuid: (?P<xuid>\d+)'
+                source: message
+            - regex:
+                expression: 'Player disconnected: (?P<player_name>\w+), xuid: (?P<xuid>\d+)'
+                source: message
+            - labels:
+                player_name:
+                xuid:
+            - template:
+                source: event_type
+                template: '{{ if contains .message "connected" }}joined{{ else if contains .message "disconnected" }}left{{ end }}'
+            - labels:
+                event_type:
+      - output:
+          source: output
+
+  # Nginx access logs with enhanced parsing
+  - job_name: nginx_access
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    
+    relabel_configs:
+      # Only target nginx containers
+      - source_labels: ['__meta_docker_container_name']
+        regex: 'nginx-(cloudflared|tailscale)'
+        target_label: 'container_name'
+      # Extract container ID for filename
+      - source_labels: ['__meta_docker_container_id']
+        target_label: 'container_id'
+      # Set the log file path
+      - source_labels: ['__meta_docker_container_id']
+        target_label: '__path__'
+        replacement: '/var/lib/docker/containers/${1}/${1}-json.log'
+      # Add job label
+      - target_label: 'job'
+        replacement: 'nginx_access'
+
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<container_name>(?:[^|]*))\|
+          source: tag
+      - timestamp:
+          format: RFC3339Nano
+          source: time
+      - labels:
+          stream:
+          container_name:
+      # Parse nginx access log format
+      - match:
+          selector: '{container_name=~"nginx-.*"} |= "GET" |= "POST" |= "PUT" |= "DELETE"'
+          stages:
+            - regex:
+                expression: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request_uri>\S+) (?P<protocol>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" (?P<additional_fields>.*)'
+                source: output
+            - regex:
+                expression: 'cf_ip="(?P<cf_connecting_ip>[^"]*)"'
+                source: additional_fields
+            - regex:
+                expression: 'cf_country="(?P<cf_country>[^"]*)"'
+                source: additional_fields
+            - regex:
+                expression: 'real_ip="(?P<real_ip>[^"]*)"'
+                source: additional_fields
+            - labels:
+                method:
+                status:
+                cf_connecting_ip:
+                cf_country:
+                real_ip:
+            - output:
+                source: output
+
+  # System logs
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          __path__: /var/log/syslog
+
+  # Application logs (if any)
+  - job_name: applications
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: applications
+          __path__: /var/log/*.log
