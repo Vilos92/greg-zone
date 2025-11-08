@@ -1,0 +1,543 @@
+services:
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: tailscale
+    hostname: greg-zone
+    restart: unless-stopped
+    volumes:
+      - "tailscale-state:/var/lib/tailscale"
+      - "/dev/net/tun:/dev/net/tun"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    networks:
+      - infrastructure
+      - tailscale
+
+  nginx-tailscale:
+    image: nginx:alpine
+    container_name: nginx-tailscale
+    volumes:
+      - "./nginx/nginx-tailscale.conf:/etc/nginx/nginx.conf:ro"
+      - "./nginx/auth:/etc/nginx/auth:ro"
+      - "./nginx/index.html:/usr/share/nginx/html/index.html:ro"
+    restart: unless-stopped
+    depends_on:
+      - copyparty
+      - freshrss
+      - kiwix
+      - prometheus
+      - grafana
+    network_mode: service:tailscale
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    depends_on:
+      - nginx-cloudflared
+    command: tunnel --no-autoupdate run --token ${COPYPARTY_CLOUDFLARED_TOKEN}
+    networks:
+      - cloudflare
+
+  nginx-cloudflared:
+    image: nginx:alpine
+    container_name: nginx-cloudflared
+    ports:
+      - "9847:80"
+    volumes:
+      - "./nginx/nginx-cloudflare.conf:/etc/nginx/nginx.conf:ro"
+      - "./nginx/cloudflare-ips.conf:/etc/nginx/cloudflare-ips.conf:ro"
+      - "./nginx/auth:/etc/nginx/auth:ro"
+    restart: unless-stopped
+    depends_on:
+      - copyparty
+      - freshrss
+      - kiwix
+    networks:
+      cloudflare:
+        ipv4_address: 172.19.0.10
+
+  copyparty:
+    image: copyparty/dj:latest
+    container_name: copyparty
+    ports:
+      - "3923:3923"
+    user: "1000"
+    environment:
+      - LD_PRELOAD=/usr/lib/libmimalloc-secure.so.2
+    volumes:
+      - "./copyparty/copyparty.conf:/app/copyparty.conf:ro"
+      - "./copyparty/copyparty-discord-hook.py:/app/copyparty-discord-hook.py:ro"
+      - "copyparty-hists:/cfg/hists"
+      - "/Volumes/T7:/Volumes/T7"
+      - "/Volumes/Wokyis M.2 SSD - Storage:/Volumes/Wokyis M.2 SSD - Storage"
+    restart: unless-stopped
+    command: ["--rproxy", "-1", "-c", "/app/copyparty.conf", "--xau", "f,t5,j,python3,/app/copyparty-discord-hook.py,--"]
+    networks:
+      - infrastructure
+      - tailscale
+      - cloudflare
+
+  kiwix:
+    image: ghcr.io/kiwix/kiwix-serve:latest
+    container_name: kiwix
+    ports:
+      - "8473:8080"
+    volumes:
+      - "/Volumes/T7/Vaults/Local Vault/media/zim:/data"
+    restart: unless-stopped
+    command: '**/*.zim'
+    networks:
+      - tailscale
+      - cloudflare
+
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    ports:
+      - "49153:80"
+    environment:
+      - TZ=America/Los_Angeles
+      - CRON_MIN=1,31
+    volumes:
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-data:/var/www/FreshRSS/data"
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-extensions:/var/www/FreshRSS/extensions"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tailscale
+      - cloudflare
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Los_Angeles
+      - USER=greg
+      - PASS=${TRANSMISSION_PASSWORD}
+    volumes:
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/transmission-config:/config"
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/torrent:/downloads"
+    restart: unless-stopped
+    networks:
+      - tailscale
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+      - tailscale
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager:/etc/alertmanager:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+
+  discord-webhook:
+    build: ./discord-webhook
+    container_name: discord-webhook
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    environment:
+      - DISCORD_JORDANIA_WEBHOOK_URL=${DISCORD_JORDANIA_WEBHOOK_URL}
+      - DISCORD_COPYPARTY_WEBHOOK_URL=${DISCORD_COPYPARTY_WEBHOOK_URL}
+      - DISCORD_PLEX_WEBHOOK_URL=${DISCORD_PLEX_WEBHOOK_URL}
+      - DISCORD_NGINX_WEBHOOK_URL=${DISCORD_NGINX_WEBHOOK_URL}
+      - DISCORD_INFRA_WEBHOOK_URL=${DISCORD_INFRA_WEBHOOK_URL}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+
+  # Redis database for alert monitor state
+  infra-redis:
+    image: redis:8-alpine
+    container_name: infra-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass "${INFRA_REDIS_PASSWORD}" --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - infrastructure
+
+  infra-redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: infra-redis-commander
+    environment:
+      - REDIS_HOSTS=local:infra-redis:6379:0:${INFRA_REDIS_PASSWORD}
+    ports:
+      - "127.0.0.1:8084:8081"
+    networks:
+      - infrastructure
+    depends_on:
+      - infra-redis
+    restart: unless-stopped
+
+  # Services alert monitor (nginx, copyparty, freshrss, kiwix)
+  services-alert-monitor:
+    build:
+      context: ./alert-monitors
+      dockerfile: services/Dockerfile
+    container_name: services-alert-monitor
+    restart: unless-stopped
+    environment:
+      - LOKI_URL=http://loki:3100
+      - WEBHOOK_URL=http://discord-webhook:8080/webhook
+      - CHECK_INTERVAL=30
+      - ALERT_MONITOR_SECRET=${ALERT_MONITOR_SECRET}
+      - IP_API_ACCESS_KEY=${IP_API_ACCESS_KEY}
+      - INFRA_REDIS_PASSWORD=${INFRA_REDIS_PASSWORD}
+    networks:
+      - infrastructure
+    depends_on:
+      - infra-redis
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Infrastructure alert monitor (loki, prometheus, grafana, etc.)
+  infrastructure-alert-monitor:
+    build:
+      context: ./alert-monitors
+      dockerfile: infrastructure/Dockerfile
+    container_name: infrastructure-alert-monitor
+    restart: unless-stopped
+    environment:
+      - LOKI_URL=http://loki:3100
+      - WEBHOOK_URL=http://discord-webhook:8080/webhook
+      - CHECK_INTERVAL=30
+      - ALERT_MONITOR_SECRET=${ALERT_MONITOR_SECRET}
+      - INFRA_REDIS_PASSWORD=${INFRA_REDIS_PASSWORD}
+    networks:
+      - infrastructure
+    depends_on:
+      - infra-redis
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Minecraft alert monitor (minecraft server)
+  minecraft-alert-monitor:
+    build:
+      context: ./alert-monitors
+      dockerfile: minecraft/Dockerfile
+    container_name: minecraft-alert-monitor
+    restart: unless-stopped
+    environment:
+      - LOKI_URL=http://loki:3100
+      - WEBHOOK_URL=http://discord-webhook:8080/webhook
+      - CHECK_INTERVAL=30
+      - INFRA_REDIS_PASSWORD=${INFRA_REDIS_PASSWORD}
+    networks:
+      - infrastructure
+      - playit
+    depends_on:
+      - infra-redis
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=greg
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+      - tailscale
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "2"
+    networks:
+      - infrastructure
+
+  docker-stats-exporter:
+    build: ./docker-stats-exporter
+    container_name: docker-stats-exporter
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    command:
+      - '--docker_only=true'
+      - '--store_container_labels=true'
+      - '--whitelisted_container_labels=name,image'
+      - '--housekeeping_interval=10s'
+      - '--max_housekeeping_interval=15s'
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+      - tailscale
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - infrastructure
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - ./promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - infrastructure
+      - tailscale
+      - cloudflare
+      - playit
+
+  minecraft:
+    image: itzg/minecraft-bedrock-server:latest
+    platform: linux/amd64
+    container_name: minecraft
+    restart: unless-stopped
+    environment:
+      - EULA=TRUE
+      - AUTO_PAUSE=TRUE
+      - AUTO_PAUSE_DELAY=10
+      - GAMEMODE=survival
+      - DIFFICULTY=normal
+      - ENABLE_SSH=true
+    ports:
+      - "19132:19132/udp"
+    expose:
+      - "2222"
+    volumes:
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/data"
+    stdin_open: true
+    tty: true
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      playit:
+        ipv4_address: 172.20.0.10
+
+  minecraft-backup:
+    image: kaiede/minecraft-bedrock-backup
+    container_name: minecraft-backup
+    restart: unless-stopped
+    environment:
+      - TZ=America/Los_Angeles
+    volumes:
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania_backups:/data"
+      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/jordania"
+      - "./minecraft/backup/config.yml:/config/config.yml:ro"
+    depends_on:
+      - minecraft
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      playit:
+        ipv4_address: 172.20.0.11
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:0.16
+    container_name: playit
+    restart: unless-stopped
+    depends_on:
+      - minecraft
+    environment:
+      - SECRET_KEY=${PLAYIT_SECRET_KEY}
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+    networks:
+      playit:
+        ipv4_address: 172.20.0.12
+
+  mc-monitor:
+    image: itzg/mc-monitor:latest
+    container_name: mc-monitor
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - EXPORT_BEDROCK_SERVERS=172.20.0.10:19132
+      - EXPORT_PORT=8080
+      - TIMEOUT=30s
+    command: export-for-prometheus
+    depends_on:
+      - minecraft
+    logging:
+      options:
+        max-size: "5m"
+        max-file: "2"
+    networks:
+      - infrastructure
+      - playit
+
+networks:
+  cloudflare:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/24
+  tailscale:
+    driver: bridge
+  playit:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  infrastructure:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+
+volumes:
+  tailscale-state:
+    driver: local
+  prometheus-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+  redis-data:
+    driver: local
+  copyparty-hists:
+    driver: local

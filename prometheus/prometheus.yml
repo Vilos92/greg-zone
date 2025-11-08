@@ -1,0 +1,65 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "container_alerts.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor for Docker container metrics
+  - job_name: 'docker-stats'
+    static_configs:
+      - targets: ['docker-stats-exporter:8081']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # Nginx metrics (if nginx-prometheus-exporter is added later)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-tailscale:9113']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # Note: Removed docker-services health checks as these services don't expose /health endpoints
+
+  # Alertmanager monitoring
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    scrape_interval: 30s
+
+  # Grafana monitoring
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Minecraft server monitoring via mc-monitor
+  - job_name: 'minecraft-monitor'
+    static_configs:
+      - targets: ['mc-monitor:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
