@@ -62,6 +62,40 @@ services:
       cloudflare:
         ipv4_address: 172.19.0.10
 
+  # Tailscale container for exit node routing (e.g., Mullvad VPN)
+  # Transmission routes all traffic through this exit node
+  tailscale-exit-node:
+    image: tailscale/tailscale:latest
+    container_name: tailscale-exit-node
+    hostname: greg-zone-exit-node
+    restart: unless-stopped
+    volumes:
+      - "tailscale-exit-node-state:/var/lib/tailscale"
+      - "/dev/net/tun:/dev/net/tun"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_EXIT_NODE_AUTH_KEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    command:
+      - sh
+      - -c
+      - |
+        /usr/local/bin/containerboot &
+        while ! tailscale status &>/dev/null; do sleep 1; done
+        tailscale set --webclient
+        tailscale web --listen 0.0.0.0:5252 &
+        wait
+    ports:
+      - "5252:5252"  # Tailscale web UI for exit node selection (accessible from host for configuration)
+      - "9091:9091"  # Transmission web UI (accessible from host via Tailscale network)
+      - "51413:51413"  # Transmission torrent port
+      - "51413:51413/udp"  # Transmission torrent port UDP
+    networks:
+      - tailscale
+
   copyparty:
     image: copyparty/dj:latest
     container_name: copyparty
@@ -119,10 +153,10 @@ services:
   transmission:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
-    ports:
-      - "9091:9091"
-      - "51413:51413"
-      - "51413:51413/udp"
+    # All traffic (including UDP/51413) routes through tailscale-exit-node
+    network_mode: "service:tailscale-exit-node"
+    depends_on:
+      - tailscale-exit-node
     environment:
       - PUID=1000
       - PGID=1000
@@ -133,8 +167,6 @@ services:
       - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/transmission-config:/config"
       - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/torrent:/downloads"
     restart: unless-stopped
-    networks:
-      - tailscale
 
   prometheus:
     image: prom/prometheus:latest
@@ -528,6 +560,8 @@ networks:
 
 volumes:
   tailscale-state:
+    driver: local
+  tailscale-exit-node-state:
     driver: local
   prometheus-data:
     driver: local
