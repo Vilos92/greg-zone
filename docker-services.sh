@@ -125,6 +125,7 @@ start_services() {
     echo -e "   • FreshRSS:      http://greg-zone:9002"
     echo -e "   • Kiwix:         http://greg-zone:9003"
     echo -e "   • Transmission:  http://greg-zone:9004"
+    echo -e "   • Exit Node GUI: http://greg-zone:9008"
     echo -e "   • Redis Insight: http://greg-zone:8084"
     echo
     echo -e "${PURPLE}🌍 Public Access:${NC}"
