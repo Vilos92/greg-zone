@@ -47,8 +47,7 @@ limits_config:
   max_streams_matchers_per_query: 1000
   max_concurrent_tail_requests: 10
   max_queriers_per_tenant: 0
-  retention_period: 168h  # 7 days retention
-
+  retention_period: 168h # 7 days retention
 
 analytics:
   reporting_enabled: false
