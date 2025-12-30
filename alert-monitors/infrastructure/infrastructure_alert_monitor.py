@@ -7,11 +7,13 @@ Handles infrastructure service health monitoring.
 
 import time
 import requests
-from datetime import datetime
-from typing import Dict, Any
+import re
+from datetime import datetime, timedelta
+from typing import Dict, Any, List
 import logging
 
 from shared.base_alert_monitor import BaseAlertMonitor
+from shared.utils import format_nginx_timestamp
 
 # Configure logging
 logging.basicConfig(
@@ -57,6 +59,19 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 "track_state": True,
                 "state_key": "freshrss_public",
             },
+            # Nginx bot blocking (403 responses)
+            {
+                "name": "nginx_bot_blocked",
+                "service": "nginx-cloudflared",
+                "query": '{container_name="nginx-cloudflared"} |~ " 403 "',
+                "pattern": r'^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request_uri>\S+) (?P<protocol>\S+)" (?P<status>403) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" host="(?P<host>[^"]*)" cf_ip="(?P<cf_connecting_ip>[^"]*)" cf_country="(?P<cf_country>[^"]*)" cf_ray="(?P<cf_ray>[^"]*)" real_ip="(?P<real_ip>[^"]*)" forwarded_for="(?P<forwarded_for>[^"]*)"',
+                "alert_type": "bot_blocked",
+                "discord_title": "🚫 Bot Blocked",
+                "discord_message": "**Nginx rejected a bot request**\n\n**🔗 IP Address:** `{client_ip}`\n**📍 Location:** {location}\n**🕐 Time:** {formatted_time}\n**🌐 Host:** {host}\n\n**🎯 Request Details:**\n• **Method:** {method}\n• **Path:** `{request_uri}`\n• **Status:** 403 (Forbidden)\n• **Protocol:** {protocol}\n\n**🤖 User Agent:**\n```{http_user_agent}```\n\n**🔗 Referrer:** {http_referer}\n**☁️ Cloudflare Ray ID:** {cf_ray}",
+                "color": 0xFFAA00,
+                "track_state": False,
+                "ip_field": "forwarded_for",
+            },
         ]
 
         super().__init__(alert_configs, "infrastructure")
@@ -94,6 +109,11 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 for config in self.alert_configs:
                     if config.get("check_type") == "url_health_check":
                         self.process_url_health_check(config)
+                    elif config.get("alert_type") == "bot_blocked":
+                        # Query Loki for 403 responses
+                        logs = self.query_loki(config["query"])
+                        if logs:
+                            self.process_bot_blocked_alert(config, logs)
 
                 # Update last check time and save state
                 self.last_check_time = current_time
@@ -195,6 +215,103 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
 
         except Exception as e:
             logger.error(f"Error saving infrastructure state: {e}")
+
+    def process_bot_blocked_alert(self, config: Dict[str, Any], logs: List[Dict]):
+        """Process bot blocked alerts (403 responses from nginx)."""
+        pattern = re.compile(config["pattern"])
+        ip_field = config.get("ip_field", "forwarded_for")
+        current_time = datetime.now()
+
+        for log in logs:
+            match = pattern.search(log["message"])
+            if match:
+                match_data = match.groupdict()
+                ip_address = match_data.get(ip_field) or match_data.get("remote_addr")
+                user_agent = match_data.get("http_user_agent", "Unknown")
+                
+                if not ip_address or ip_address == "-":
+                    continue
+                
+                # Skip legitimate health check requests
+                if "alert-monitor-health-check" in user_agent:
+                    continue
+                
+                # Always alert on bot 403s (nginx bot detection is reliable)
+                logger.info(
+                    f"Bot blocked: {ip_address} with user agent: {user_agent[:50]}..."
+                )
+                self.send_bot_blocked_alert(config, match_data, ip_address, current_time)
+
+    def send_bot_blocked_alert(
+        self, config: Dict[str, Any], match_data: Dict, ip_address: str, current_time: datetime
+    ):
+        """Send alert for bot blocked (403 response) and track IP."""
+        try:
+            # Determine client IP and location
+            client_ip = match_data.get("forwarded_for") or ip_address
+            cf_country = match_data.get("cf_country", "")
+            if cf_country and cf_country != "":
+                location = cf_country
+            else:
+                location = "Unknown"
+            
+            # Track IP in Redis (similar to services monitor)
+            ip_key = f"{config['service']}:{client_ip}"
+            existing_ip_data = self.redis_client.get_ip_data(ip_key)
+            
+            # Use cached country if available, otherwise use Cloudflare country
+            if existing_ip_data and existing_ip_data.get("country") and existing_ip_data.get("country") not in ["Unknown", None, ""]:
+                location = existing_ip_data.get("country")
+            elif cf_country and cf_country != "":
+                location = cf_country
+            
+            # Update IP in Redis with current timestamp and location
+            self.redis_client.update_ip(ip_key, current_time, location)
+            
+            host = match_data.get("host", "Unknown")
+            user_agent = match_data.get("http_user_agent", "Unknown")
+            
+            # Use the detailed message template from config
+            discord_message = config["discord_message"].format(
+                client_ip=client_ip,
+                location=location,
+                formatted_time=format_nginx_timestamp(
+                    match_data.get("time_local", "Recent")
+                ),
+                host=host,
+                method=match_data.get("method", "Unknown"),
+                request_uri=match_data.get("request_uri", "Unknown"),
+                protocol=match_data.get("protocol", "HTTP/1.1"),
+                http_user_agent=user_agent,
+                http_referer=match_data.get("http_referer", "-"),
+                cf_ray=match_data.get("cf_ray", "-"),
+            )
+
+            payload = {
+                "alerts": [
+                    {
+                        "status": "firing",
+                        "labels": {
+                            "service": config["service"],
+                            "alert_type": config["alert_type"],
+                            "ip_address": ip_address,
+                        },
+                        "annotations": {
+                            "discord_title": config["discord_title"],
+                            "discord_message": discord_message,
+                        },
+                    }
+                ],
+                "color": config["color"],
+            }
+
+            self.send_webhook(payload)
+            logger.info(
+                f"Sent bot blocked alert: {config['service']} - {ip_address} (IP tracked in Redis)"
+            )
+
+        except Exception as e:
+            logger.error(f"Error sending bot blocked alert: {e}")
 
 
 if __name__ == "__main__":
