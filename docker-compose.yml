@@ -5,8 +5,8 @@ services:
     hostname: greg-zone
     restart: unless-stopped
     volumes:
-      - "tailscale-state:/var/lib/tailscale"
-      - "/dev/net/tun:/dev/net/tun"
+      - 'tailscale-state:/var/lib/tailscale'
+      - '/dev/net/tun:/dev/net/tun'
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -22,9 +22,9 @@ services:
     image: nginx:alpine
     container_name: nginx-tailscale
     volumes:
-      - "./nginx/nginx-tailscale.conf:/etc/nginx/nginx.conf:ro"
-      - "./nginx/auth:/etc/nginx/auth:ro"
-      - "./nginx/index.html:/usr/share/nginx/html/index.html:ro"
+      - './nginx/nginx-tailscale.conf:/etc/nginx/nginx.conf:ro'
+      - './nginx/auth:/etc/nginx/auth:ro'
+      - './nginx/index.html:/usr/share/nginx/html/index.html:ro'
     restart: unless-stopped
     depends_on:
       - copyparty
@@ -48,11 +48,11 @@ services:
     image: nginx:alpine
     container_name: nginx-cloudflared
     ports:
-      - "9847:80"
+      - '9847:80'
     volumes:
-      - "./nginx/nginx-cloudflare.conf:/etc/nginx/nginx.conf:ro"
-      - "./nginx/cloudflare-ips.conf:/etc/nginx/cloudflare-ips.conf:ro"
-      - "./nginx/auth:/etc/nginx/auth:ro"
+      - './nginx/nginx-cloudflare.conf:/etc/nginx/nginx.conf:ro'
+      - './nginx/cloudflare-ips.conf:/etc/nginx/cloudflare-ips.conf:ro'
+      - './nginx/auth:/etc/nginx/auth:ro'
     restart: unless-stopped
     depends_on:
       - copyparty
@@ -70,8 +70,8 @@ services:
     hostname: greg-zone-exit-node
     restart: unless-stopped
     volumes:
-      - "tailscale-exit-node-state:/var/lib/tailscale"
-      - "/dev/net/tun:/dev/net/tun"
+      - 'tailscale-exit-node-state:/var/lib/tailscale'
+      - '/dev/net/tun:/dev/net/tun'
     cap_add:
       - NET_ADMIN
       - SYS_MODULE
@@ -89,10 +89,10 @@ services:
         tailscale web --listen 0.0.0.0:5252 &
         wait
     ports:
-      - "5252:5252"  # Tailscale web UI for exit node selection (accessible from host for configuration)
-      - "9091:9091"  # Transmission web UI (accessible from host via Tailscale network)
-      - "51413:51413"  # Transmission torrent port
-      - "51413:51413/udp"  # Transmission torrent port UDP
+      - '5252:5252' # Tailscale web UI for exit node selection (accessible from host for configuration)
+      - '9091:9091' # Transmission web UI (accessible from host via Tailscale network)
+      - '51413:51413' # Transmission torrent port
+      - '51413:51413/udp' # Transmission torrent port UDP
     networks:
       - tailscale
 
@@ -100,18 +100,26 @@ services:
     image: copyparty/dj:latest
     container_name: copyparty
     ports:
-      - "3923:3923"
-    user: "1000"
+      - '3923:3923'
+    user: '1000'
     environment:
       - LD_PRELOAD=/usr/lib/libmimalloc-secure.so.2
     volumes:
-      - "./copyparty/copyparty.conf:/app/copyparty.conf:ro"
-      - "./copyparty/copyparty-discord-hook.py:/app/copyparty-discord-hook.py:ro"
-      - "copyparty-hists:/cfg/hists"
-      - "/Volumes/T7:/Volumes/T7"
-      - "/Volumes/Wokyis M.2 SSD - Storage:/Volumes/Wokyis M.2 SSD - Storage"
+      - './copyparty/copyparty.conf:/app/copyparty.conf:ro'
+      - './copyparty/copyparty-discord-hook.py:/app/copyparty-discord-hook.py:ro'
+      - 'copyparty-hists:/cfg/hists'
+      - '/Volumes/T7:/Volumes/T7'
+      - '/Volumes/Wokyis M.2 SSD - Storage:/Volumes/Wokyis M.2 SSD - Storage'
     restart: unless-stopped
-    command: ["--rproxy", "-1", "-c", "/app/copyparty.conf", "--xau", "f,t5,j,python3,/app/copyparty-discord-hook.py,--"]
+    command:
+      [
+        '--rproxy',
+        '-1',
+        '-c',
+        '/app/copyparty.conf',
+        '--xau',
+        'f,t5,j,python3,/app/copyparty-discord-hook.py,--'
+      ]
     networks:
       - infrastructure
       - tailscale
@@ -121,9 +129,9 @@ services:
     image: ghcr.io/kiwix/kiwix-serve:latest
     container_name: kiwix
     ports:
-      - "8473:8080"
+      - '8473:8080'
     volumes:
-      - "/Volumes/T7/Vaults/Local Vault/media/zim:/data"
+      - '/Volumes/T7/Vaults/Local Vault/media/zim:/data'
     restart: unless-stopped
     command: '**/*.zim'
     networks:
@@ -134,18 +142,18 @@ services:
     image: freshrss/freshrss:latest
     container_name: freshrss
     ports:
-      - "49153:80"
+      - '49153:80'
     environment:
       - TZ=America/Los_Angeles
       - CRON_MIN=1,31
     volumes:
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-data:/var/www/FreshRSS/data"
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-extensions:/var/www/FreshRSS/extensions"
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-data:/var/www/FreshRSS/data'
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Greg News/freshrss-extensions:/var/www/FreshRSS/extensions'
     restart: unless-stopped
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - tailscale
       - cloudflare
@@ -154,7 +162,7 @@ services:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
     # All traffic (including UDP/51413) routes through tailscale-exit-node
-    network_mode: "service:tailscale-exit-node"
+    network_mode: 'service:tailscale-exit-node'
     depends_on:
       - tailscale-exit-node
     environment:
@@ -164,8 +172,8 @@ services:
       - USER=greg
       - PASS=${TRANSMISSION_PASSWORD}
     volumes:
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/transmission-config:/config"
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/torrent:/downloads"
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/transmission-config:/config'
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/torrent:/downloads'
     restart: unless-stopped
 
   prometheus:
@@ -173,7 +181,7 @@ services:
     container_name: prometheus
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./prometheus:/etc/prometheus:ro
       - prometheus-data:/prometheus
@@ -187,8 +195,8 @@ services:
       - '--web.enable-admin-api'
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -198,7 +206,7 @@ services:
     container_name: alertmanager
     restart: unless-stopped
     ports:
-      - "9093:9093"
+      - '9093:9093'
     volumes:
       - ./alertmanager:/etc/alertmanager:ro
       - alertmanager-data:/alertmanager
@@ -208,8 +216,8 @@ services:
       - '--web.external-url=http://localhost:9093'
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
 
@@ -218,7 +226,7 @@ services:
     container_name: discord-webhook
     restart: unless-stopped
     ports:
-      - "8083:8080"
+      - '8083:8080'
     environment:
       - DISCORD_JORDANIA_WEBHOOK_URL=${DISCORD_JORDANIA_WEBHOOK_URL}
       - DISCORD_COPYPARTY_WEBHOOK_URL=${DISCORD_COPYPARTY_WEBHOOK_URL}
@@ -227,8 +235,8 @@ services:
       - DISCORD_INFRA_WEBHOOK_URL=${DISCORD_INFRA_WEBHOOK_URL}
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
 
@@ -238,7 +246,7 @@ services:
     container_name: infra-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - '6379:6379'
     command: redis-server --requirepass "${INFRA_REDIS_PASSWORD}" --appendonly yes
     volumes:
       - redis-data:/data
@@ -251,7 +259,7 @@ services:
     environment:
       - REDIS_HOSTS=local:infra-redis:6379:0:${INFRA_REDIS_PASSWORD}
     ports:
-      - "127.0.0.1:8084:8081"
+      - '127.0.0.1:8084:8081'
     networks:
       - infrastructure
     depends_on:
@@ -278,8 +286,8 @@ services:
       - infra-redis
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # Infrastructure alert monitor (loki, prometheus, grafana, etc.)
   infrastructure-alert-monitor:
@@ -300,8 +308,8 @@ services:
       - infra-redis
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # Minecraft alert monitor (minecraft server)
   minecraft-alert-monitor:
@@ -322,15 +330,15 @@ services:
       - infra-redis
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=greg
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
@@ -340,8 +348,8 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -351,7 +359,7 @@ services:
     container_name: node-exporter
     restart: unless-stopped
     ports:
-      - "9100:9100"
+      - '9100:9100'
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -363,8 +371,8 @@ services:
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     logging:
       options:
-        max-size: "10m"
-        max-file: "2"
+        max-size: '10m'
+        max-file: '2'
     networks:
       - infrastructure
 
@@ -373,13 +381,13 @@ services:
     container_name: docker-stats-exporter
     restart: unless-stopped
     ports:
-      - "8081:8081"
+      - '8081:8081'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
 
@@ -388,7 +396,7 @@ services:
     container_name: cadvisor
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - '8080:8080'
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
@@ -407,8 +415,8 @@ services:
       - '--max_housekeeping_interval=15s'
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -418,7 +426,7 @@ services:
     container_name: loki
     restart: unless-stopped
     ports:
-      - "3100:3100"
+      - '3100:3100'
     volumes:
       - ./loki/loki.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
@@ -438,8 +446,8 @@ services:
     command: -config.file=/etc/promtail/config.yml
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -459,11 +467,11 @@ services:
       - DIFFICULTY=normal
       - ENABLE_SSH=true
     ports:
-      - "19132:19132/udp"
+      - '19132:19132/udp'
     expose:
-      - "2222"
+      - '2222'
     volumes:
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/data"
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/data'
     stdin_open: true
     tty: true
     deploy:
@@ -472,8 +480,8 @@ services:
           memory: 4G
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       playit:
         ipv4_address: 172.20.0.10
@@ -485,15 +493,15 @@ services:
     environment:
       - TZ=America/Los_Angeles
     volumes:
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania_backups:/data"
-      - "/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/jordania"
-      - "./minecraft/backup/config.yml:/config/config.yml:ro"
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania_backups:/data'
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/Minecraft/Jordania:/jordania'
+      - './minecraft/backup/config.yml:/config/config.yml:ro'
     depends_on:
       - minecraft
     logging:
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
     networks:
       playit:
         ipv4_address: 172.20.0.11
@@ -512,8 +520,8 @@ services:
           memory: 128M
     logging:
       options:
-        max-size: "5m"
-        max-file: "2"
+        max-size: '5m'
+        max-file: '2'
     networks:
       playit:
         ipv4_address: 172.20.0.12
@@ -523,7 +531,7 @@ services:
     container_name: mc-monitor
     restart: unless-stopped
     ports:
-      - "8082:8080"
+      - '8082:8080'
     environment:
       - EXPORT_BEDROCK_SERVERS=172.20.0.10:19132
       - EXPORT_PORT=8080
@@ -533,8 +541,8 @@ services:
       - minecraft
     logging:
       options:
-        max-size: "5m"
-        max-file: "2"
+        max-size: '5m'
+        max-file: '2'
     networks:
       - infrastructure
       - playit

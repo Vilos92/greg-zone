@@ -52,6 +52,7 @@ See `./docker-services.sh help` for all available commands:
 ## Service Access
 
 ### Tailscale Access (Private Network)
+
 - Main Dashboard: http://greg-zone (port 80)
 - Copyparty: http://greg-zone:9001
 - FreshRSS: http://greg-zone:9002
@@ -63,6 +64,7 @@ See `./docker-services.sh help` for all available commands:
 - Redis Commander: http://greg-zone:8084
 
 ### Public Access (via Cloudflare)
+
 - Copyparty: https://copyparty.greglinscheid.com
 - FreshRSS: https://freshrss.greglinscheid.com
 - Kiwix: https://kiwix.greglinscheid.com
@@ -82,4 +84,3 @@ See `./docker-services.sh help` for all available commands:
 - `nginx/` - Nginx reverse proxy configs (Tailscale and Cloudflare).
 - `prometheus/` - Prometheus configuration.
 - `promtail/` - Promtail log shipping config.
-

@@ -1,1261 +1,1323 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GregZone</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏯</text></svg>">
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏯</text></svg>"
+    />
     <style>
-        @import url("https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap");
-        
-        * {
-            box-sizing: border-box;
+      @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(45deg, #8b5cf6, #a855f7, #c084fc, #d8b4fe, #e9d5ff);
+        background-size: 400% 400%;
+        animation: gradientShift 3s ease infinite;
+        min-height: 100vh;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
         }
-        
-        body { 
-            font-family: "Comic Neue", "Comic Sans MS", cursive; 
-            margin: 0; 
-            padding: 20px;
-            background: linear-gradient(45deg, #8b5cf6, #a855f7, #c084fc, #d8b4fe, #e9d5ff);
-            background-size: 400% 400%;
-            animation: gradientShift 3s ease infinite;
-            min-height: 100vh;
+        50% {
+          background-position: 100% 50%;
         }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        100% {
+          background-position: 0% 50%;
         }
-        
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background: rgba(255,255,255,0.95); 
-            padding: 40px; 
-            border-radius: 20px; 
-            box-shadow: 0 0 30px rgba(0,0,0,0.3);
-            border: 3px solid #8b5cf6;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        border: 3px solid #8b5cf6;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
         }
-        
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            
-            .container {
-                padding: 20px;
-                border-radius: 15px;
-                border: 2px solid #8b5cf6;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
-            
-            .marquee {
-                font-size: 16px;
-                padding: 12px;
-            }
-            
-            .service-button {
-                padding: 15px;
-                font-size: 16px;
-            }
-            
-            .other-links h2 {
-                font-size: 20px;
-            }
+
+        .container {
+          padding: 20px;
+          border-radius: 15px;
+          border: 2px solid #8b5cf6;
         }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-                border-radius: 10px;
-                border: 1px solid #8b5cf6;
-                box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .marquee {
-                font-size: 14px;
-                padding: 10px;
-            }
-            
-            .service-button {
-                padding: 12px;
-                font-size: 15px;
-                border-radius: 10px;
-            }
-            
-            .other-links {
-                margin-top: 30px;
-                padding-top: 20px;
-            }
-            
-            .other-links h2 {
-                font-size: 18px;
-            }
+
+        h1 {
+          font-size: 28px;
         }
-        
-        h1 { 
-            text-align: center; 
-            font-size: 36px;
-            margin: 0 0 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .greg { color: #ffc72c; }
-        .zone { color: #990000; }
-        
+
         .marquee {
-            background: #8b5cf6;
-            color: white;
-            padding: 15px;
-            margin: 0 0 30px 0;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+          font-size: 16px;
+          padding: 12px;
         }
-        
-        .services {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
+
         .service-button {
-            display: block;
-            background: #8b5cf6;
-            color: white;
-            text-decoration: none;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            transition: none;
-            border: 2px solid #8b5cf6;
+          padding: 15px;
+          font-size: 16px;
         }
-        
-        .service-button:hover,
-        .service-button:focus {
-            background: #8b1538;
-            outline: none;
-        }
-        
-        .service-button:active {
-            transform: translateY(0);
-        }
-        
-        .service-description {
-            font-size: 14px;
-            color: #fff;
-            margin-top: 5px;
-            font-weight: normal;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        
-        .other-links {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #8b5cf6;
-        }
-        
+
         .other-links h2 {
-            color: #8b5cf6;
-            text-align: center;
-            font-size: 24px;
-            margin: 0 0 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+          font-size: 20px;
         }
-        
-        .other-links .services {
-            gap: 15px;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 15px;
+          border-radius: 10px;
+          border: 1px solid #8b5cf6;
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
-        
-        .other-links .service-button {
-            background: #6b46c1;
-            border: 2px solid #6b46c1;
+
+        h1 {
+          font-size: 24px;
         }
-        
-        .other-links .service-button:hover,
-        .other-links .service-button:focus {
-            background: #553c9a;
-        }
-        
-        .system-stats-compact {
-            position: relative;
-            margin: 30px 0;
-            padding: 20px 0;
-            background: rgba(139, 92, 246, 0.1);
-            border-radius: 15px;
-            border: 2px solid rgba(139, 92, 246, 0.3);
-        }
-        
-        .stats-header {
-            text-align: center;
-            margin-bottom: 15px;
-            position: relative;
-        }
-        
-        .nav-side {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 30px;
-            cursor: pointer;
-            transition: all 0.1s ease;
-            z-index: 10;
-            background: rgba(139, 92, 246, 0.05);
-            display: none;
-        }
-        
-        .nav-side:hover {
-            background: rgba(139, 92, 246, 0.25);
-        }
-        
-        .nav-side-left {
-            top: -1px;
-            bottom: -1px;
-            left: -1px;
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            border-left: none;
-            border-radius: 15px 0 0 15px;
-        }
-        
-        .nav-side-left:hover {
-            border-color: rgba(139, 92, 246, 0.6);
-            border-left: none;
-        }
-        
-        .nav-side-right {
-            top: -1px;
-            bottom: -1px;
-            right: -1px;
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            border-right: none;
-            border-radius: 0 15px 15px 0;
-            z-index: 20;
-        }
-        
-        .nav-side-right:hover {
-            border-color: rgba(139, 92, 246, 0.6);
-            border-right: none;
-        }
-        
-        /* Hide navigation buttons on mobile */
-        @media (max-width: 768px) {
-            .nav-side {
-                display: none !important;
-            }
-            
-            /* Make stats rows wider on mobile - minimal side padding */
-            .stats-row {
-                padding: 0 8px 0 8px !important;
-            }
-            
-            /* Make docker containers box match stats rows width on mobile */
-            .container-list {
-                margin: 10px 8px 0 8px !important;
-            }
-            
-            /* Reduce main container padding on mobile */
-            .container {
-                padding: 10px !important;
-            }
-            
-            /* Reduce system stats compact padding on mobile */
-            .system-stats-compact {
-                padding: 10px 0 !important;
-            }
-        }
-        
-        /* Show left button only when on right view (minecraft) */
-        .system-stats-compact.view-minecraft .nav-side-left {
-            display: block;
-        }
-        
-        /* Show right button only when on left view (system) */
-        .system-stats-compact:not(.view-minecraft) .nav-side-right {
-            display: block;
-        }
-        
-        .stats-header-link {
-            color: #8b5cf6;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .stats-header-link:hover {
-            color: #7c3aed;
-            text-decoration: underline;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid rgba(139, 92, 246, 0.2);
-            transition: transform 0.2s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(139, 92, 246, 0.5);
-        }
-        
-        
-        /* Stats container with sliding animation */
-        .stats-container {
-            position: relative;
-            overflow: hidden;
-            margin: 20px 0;
-            min-height: 300px;
-        }
-        
-        /* Stats row layout - vertical list */
-        .stats-row {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-            min-height: 300px;
-            padding: 0 50px 0 50px;
-            box-sizing: border-box;
-        }
-        
-        .stats-row#system-stats-view {
-            transform: translateX(0);
-        }
-        
-        .stats-row#minecraft-stats-view {
-            transform: translateX(100%);
-        }
-        
-        .stats-container.view-minecraft #system-stats-view {
-            transform: translateX(-100%);
-        }
-        
-        .stats-container.view-minecraft #minecraft-stats-view {
-            transform: translateX(0);
-        }
-        
-        .stats-row .stat-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            border: 1px solid rgba(139, 92, 246, 0.1);
-            transition: background-color 0.2s ease;
-        }
-        
-        .stats-row .stat-item:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-        
-        .stats-row .stat-item.stat-item-clickable {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            cursor: pointer;
-        }
-        
-        .stats-row .stat-item.stat-item-clickable:hover {
-            background: rgba(255, 255, 255, 0.8);
-            border-color: rgba(139, 92, 246, 0.5);
-            transform: translateY(-1px);
-        }
-        
-        .stats-row .stat-item .stat-icon {
-            font-size: 18px;
-            margin-right: 10px;
-        }
-        
-        .stats-row .stat-item .stat-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #8b5cf6;
-            margin-right: auto;
-        }
-        
-        .stats-row .stat-item .stat-label {
-            font-size: 12px;
-            color: #666;
-            font-weight: 600;
-        }
-        
-        .stats-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(139, 92, 246, 0.2);
-        }
-        
-        .stats-footer-links {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .grafana-link {
-            color: #8b5cf6;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            transition: color 0.2s ease;
-        }
-        
-        .grafana-link:hover {
-            color: #7c3aed;
-            text-decoration: underline;
-        }
-        
-        /* Clickable stat item */
-        .stat-item-clickable {
-            cursor: pointer;
-            transition: all 0.1s ease;
-            position: relative;
-        }
-        
-        .stat-item-clickable:hover {
-            background: rgba(139, 92, 246, 0.15);
-            transform: translateY(-1px);
-        }
-        
-        .dropdown-arrow {
-            font-size: 10px;
-            margin-left: 5px;
-            transition: transform 0.1s ease;
-        }
-        
-        .stat-item-clickable.expanded .dropdown-arrow {
-            transform: rotate(180deg);
-        }
-        
-        /* Container list dropdown */
-        .container-list {
-            margin-top: 10px;
-            margin-left: 50px;
-            margin-right: 50px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            border: 2px solid rgba(139, 92, 246, 0.3);
-            overflow: hidden;
-            animation: slideDown 0.15s ease;
-        }
-        
-        /* Hide container list on minecraft view */
-        .system-stats-compact.view-minecraft .container-list {
-            display: none !important;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                max-height: 0;
-            }
-            to {
-                opacity: 1;
-                max-height: 300px;
-            }
-        }
-        
-        .container-list-header {
-            background: rgba(139, 92, 246, 0.1);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
-        }
-        
-        .container-list-title-section {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .container-metrics-link {
-            color: #8b5cf6;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 12px;
-            transition: color 0.1s ease;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: rgba(139, 92, 246, 0.1);
-        }
-        
-        .container-metrics-link:hover {
-            color: #7c3aed;
-            background: rgba(139, 92, 246, 0.2);
-        }
-        
-        .container-list-title {
-            font-weight: 700;
-            color: #8b5cf6;
-            font-size: 14px;
-        }
-        
-        .container-list-count {
-            background: #8b5cf6;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        
-        .container-items {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .container-item {
-            padding: 8px 15px;
-            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.1s ease;
-        }
-        
-        .container-item:hover {
-            background: rgba(139, 92, 246, 0.05);
-        }
-        
-        .container-item:last-child {
-            border-bottom: none;
-        }
-        
-        .container-name {
-            font-weight: 700;
-            color: #8b5cf6;
-            font-size: 13px;
-        }
-        
-        .container-status {
-            font-size: 11px;
-            color: #666;
-            background: rgba(34, 197, 94, 0.1);
-            color: #16a34a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 700;
-        }
-        
-        .container-item-loading {
-            padding: 15px;
-            text-align: center;
-            color: #666;
-            font-style: italic;
-        }
-        
-        /* Header compact styling */
-        .header-compact {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .castle {
-            font-size: 64px;
-            margin: 10px 0;
-            line-height: 1;
-        }
-        
-        .header-compact h1 {
-            font-size: 24px;
-            margin: 10px 0;
-        }
-        
+
         .marquee {
-            font-size: 12px;
-            margin: 5px 0;
+          font-size: 14px;
+          padding: 10px;
         }
-        
-        /* Services compact styling */
-        .services-compact h2 {
-            font-size: 18px;
-            margin: 20px 0 10px 0;
-            text-align: center;
+
+        .service-button {
+          padding: 12px;
+          font-size: 15px;
+          border-radius: 10px;
         }
-        
-        .services-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+
+        .other-links {
+          margin-top: 30px;
+          padding-top: 20px;
         }
-        
-        .service-card {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            text-decoration: none;
-            color: #8b5cf6;
-            border: 2px solid rgba(139, 92, 246, 0.2);
-            transition: all 0.1s ease;
+
+        .other-links h2 {
+          font-size: 18px;
         }
-        
-        .service-card:hover {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: rgba(139, 92, 246, 0.5);
-            transform: translateX(5px);
+      }
+
+      h1 {
+        text-align: center;
+        font-size: 36px;
+        margin: 0 0 20px 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .greg {
+        color: #ffc72c;
+      }
+      .zone {
+        color: #990000;
+      }
+
+      .marquee {
+        background: #8b5cf6;
+        color: white;
+        padding: 15px;
+        margin: 0 0 30px 0;
+        border-radius: 10px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .services {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .service-button {
+        display: block;
+        background: #8b5cf6;
+        color: white;
+        text-decoration: none;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        transition: none;
+        border: 2px solid #8b5cf6;
+      }
+
+      .service-button:hover,
+      .service-button:focus {
+        background: #8b1538;
+        outline: none;
+      }
+
+      .service-button:active {
+        transform: translateY(0);
+      }
+
+      .service-description {
+        font-size: 14px;
+        color: #fff;
+        margin-top: 5px;
+        font-weight: normal;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .other-links {
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #8b5cf6;
+      }
+
+      .other-links h2 {
+        color: #8b5cf6;
+        text-align: center;
+        font-size: 24px;
+        margin: 0 0 20px 0;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .other-links .services {
+        gap: 15px;
+      }
+
+      .other-links .service-button {
+        background: #6b46c1;
+        border: 2px solid #6b46c1;
+      }
+
+      .other-links .service-button:hover,
+      .other-links .service-button:focus {
+        background: #553c9a;
+      }
+
+      .system-stats-compact {
+        position: relative;
+        margin: 30px 0;
+        padding: 20px 0;
+        background: rgba(139, 92, 246, 0.1);
+        border-radius: 15px;
+        border: 2px solid rgba(139, 92, 246, 0.3);
+      }
+
+      .stats-header {
+        text-align: center;
+        margin-bottom: 15px;
+        position: relative;
+      }
+
+      .nav-side {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        cursor: pointer;
+        transition: all 0.1s ease;
+        z-index: 10;
+        background: rgba(139, 92, 246, 0.05);
+        display: none;
+      }
+
+      .nav-side:hover {
+        background: rgba(139, 92, 246, 0.25);
+      }
+
+      .nav-side-left {
+        top: -1px;
+        bottom: -1px;
+        left: -1px;
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        border-left: none;
+        border-radius: 15px 0 0 15px;
+      }
+
+      .nav-side-left:hover {
+        border-color: rgba(139, 92, 246, 0.6);
+        border-left: none;
+      }
+
+      .nav-side-right {
+        top: -1px;
+        bottom: -1px;
+        right: -1px;
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        border-right: none;
+        border-radius: 0 15px 15px 0;
+        z-index: 20;
+      }
+
+      .nav-side-right:hover {
+        border-color: rgba(139, 92, 246, 0.6);
+        border-right: none;
+      }
+
+      /* Hide navigation buttons on mobile */
+      @media (max-width: 768px) {
+        .nav-side {
+          display: none !important;
         }
-        
-        .service-icon {
-            font-size: 16px;
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
+
+        /* Make stats rows wider on mobile - minimal side padding */
+        .stats-row {
+          padding: 0 8px 0 8px !important;
         }
-        
-        .service-name {
-            font-weight: 700;
-            flex: 1;
+
+        /* Make docker containers box match stats rows width on mobile */
+        .container-list {
+          margin: 10px 8px 0 8px !important;
         }
-        
-        .service-desc {
-            font-size: 12px;
-            color: #666;
-            font-style: italic;
+
+        /* Reduce main container padding on mobile */
+        .container {
+          padding: 10px !important;
         }
-        
-        /* External links styling */
-        .external-links h2 {
-            font-size: 18px;
-            margin: 20px 0 10px 0;
-            text-align: center;
+
+        /* Reduce system stats compact padding on mobile */
+        .system-stats-compact {
+          padding: 10px 0 !important;
         }
-        
-        .external-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+      }
+
+      /* Show left button only when on right view (minecraft) */
+      .system-stats-compact.view-minecraft .nav-side-left {
+        display: block;
+      }
+
+      /* Show right button only when on left view (system) */
+      .system-stats-compact:not(.view-minecraft) .nav-side-right {
+        display: block;
+      }
+
+      .stats-header-link {
+        color: #8b5cf6;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .stats-header-link:hover {
+        color: #7c3aed;
+        text-decoration: underline;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        border: 2px solid rgba(139, 92, 246, 0.2);
+        transition: transform 0.2s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(139, 92, 246, 0.5);
+      }
+
+      /* Stats container with sliding animation */
+      .stats-container {
+        position: relative;
+        overflow: hidden;
+        margin: 20px 0;
+        min-height: 300px;
+      }
+
+      /* Stats row layout - vertical list */
+      .stats-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        position: absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+        min-height: 300px;
+        padding: 0 50px 0 50px;
+        box-sizing: border-box;
+      }
+
+      .stats-row#system-stats-view {
+        transform: translateX(0);
+      }
+
+      .stats-row#minecraft-stats-view {
+        transform: translateX(100%);
+      }
+
+      .stats-container.view-minecraft #system-stats-view {
+        transform: translateX(-100%);
+      }
+
+      .stats-container.view-minecraft #minecraft-stats-view {
+        transform: translateX(0);
+      }
+
+      .stats-row .stat-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 6px;
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        transition: background-color 0.2s ease;
+      }
+
+      .stats-row .stat-item:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .stats-row .stat-item.stat-item-clickable {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(139, 92, 246, 0.3);
+        cursor: pointer;
+      }
+
+      .stats-row .stat-item.stat-item-clickable:hover {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(139, 92, 246, 0.5);
+        transform: translateY(-1px);
+      }
+
+      .stats-row .stat-item .stat-icon {
+        font-size: 18px;
+        margin-right: 10px;
+      }
+
+      .stats-row .stat-item .stat-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #8b5cf6;
+        margin-right: auto;
+      }
+
+      .stats-row .stat-item .stat-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+      }
+
+      .stats-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(139, 92, 246, 0.2);
+      }
+
+      .stats-footer-links {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+      }
+
+      .grafana-link {
+        color: #8b5cf6;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: color 0.2s ease;
+      }
+
+      .grafana-link:hover {
+        color: #7c3aed;
+        text-decoration: underline;
+      }
+
+      /* Clickable stat item */
+      .stat-item-clickable {
+        cursor: pointer;
+        transition: all 0.1s ease;
+        position: relative;
+      }
+
+      .stat-item-clickable:hover {
+        background: rgba(139, 92, 246, 0.15);
+        transform: translateY(-1px);
+      }
+
+      .dropdown-arrow {
+        font-size: 10px;
+        margin-left: 5px;
+        transition: transform 0.1s ease;
+      }
+
+      .stat-item-clickable.expanded .dropdown-arrow {
+        transform: rotate(180deg);
+      }
+
+      /* Container list dropdown */
+      .container-list {
+        margin-top: 10px;
+        margin-left: 50px;
+        margin-right: 50px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        border: 2px solid rgba(139, 92, 246, 0.3);
+        overflow: hidden;
+        animation: slideDown 0.15s ease;
+      }
+
+      /* Hide container list on minecraft view */
+      .system-stats-compact.view-minecraft .container-list {
+        display: none !important;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
         }
-        
-        .external-card {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 8px;
-            text-decoration: none;
-            color: #8b5cf6;
-            border: 2px solid rgba(139, 92, 246, 0.2);
-            transition: all 0.1s ease;
+        to {
+          opacity: 1;
+          max-height: 300px;
         }
-        
-        .external-card:hover {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: rgba(139, 92, 246, 0.5);
-            transform: translateX(5px);
+      }
+
+      .container-list-header {
+        background: rgba(139, 92, 246, 0.1);
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+      }
+
+      .container-list-title-section {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .container-metrics-link {
+        color: #8b5cf6;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 12px;
+        transition: color 0.1s ease;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(139, 92, 246, 0.1);
+      }
+
+      .container-metrics-link:hover {
+        color: #7c3aed;
+        background: rgba(139, 92, 246, 0.2);
+      }
+
+      .container-list-title {
+        font-weight: 700;
+        color: #8b5cf6;
+        font-size: 14px;
+      }
+
+      .container-list-count {
+        background: #8b5cf6;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .container-items {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+
+      .container-item {
+        padding: 8px 15px;
+        border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.1s ease;
+      }
+
+      .container-item:hover {
+        background: rgba(139, 92, 246, 0.05);
+      }
+
+      .container-item:last-child {
+        border-bottom: none;
+      }
+
+      .container-name {
+        font-weight: 700;
+        color: #8b5cf6;
+        font-size: 13px;
+      }
+
+      .container-status {
+        font-size: 11px;
+        color: #666;
+        background: rgba(34, 197, 94, 0.1);
+        color: #16a34a;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+      }
+
+      .container-item-loading {
+        padding: 15px;
+        text-align: center;
+        color: #666;
+        font-style: italic;
+      }
+
+      /* Header compact styling */
+      .header-compact {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .castle {
+        font-size: 64px;
+        margin: 10px 0;
+        line-height: 1;
+      }
+
+      .header-compact h1 {
+        font-size: 24px;
+        margin: 10px 0;
+      }
+
+      .marquee {
+        font-size: 12px;
+        margin: 5px 0;
+      }
+
+      /* Services compact styling */
+      .services-compact h2 {
+        font-size: 18px;
+        margin: 20px 0 10px 0;
+        text-align: center;
+      }
+
+      .services-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .service-card {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        text-decoration: none;
+        color: #8b5cf6;
+        border: 2px solid rgba(139, 92, 246, 0.2);
+        transition: all 0.1s ease;
+      }
+
+      .service-card:hover {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.5);
+        transform: translateX(5px);
+      }
+
+      .service-icon {
+        font-size: 16px;
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .service-name {
+        font-weight: 700;
+        flex: 1;
+      }
+
+      .service-desc {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+      }
+
+      /* External links styling */
+      .external-links h2 {
+        font-size: 18px;
+        margin: 20px 0 10px 0;
+        text-align: center;
+      }
+
+      .external-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .external-card {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        text-decoration: none;
+        color: #8b5cf6;
+        border: 2px solid rgba(139, 92, 246, 0.2);
+        transition: all 0.1s ease;
+      }
+
+      .external-card:hover {
+        background: rgba(139, 92, 246, 0.1);
+        border-color: rgba(139, 92, 246, 0.5);
+        transform: translateX(5px);
+      }
+
+      .external-icon {
+        font-size: 16px;
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .external-name {
+        font-weight: 700;
+        flex: 1;
+      }
+
+      .external-desc {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 30px;
+        font-size: 14px;
+        color: #666;
+        animation: blink 1s linear infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        50% {
+          opacity: 1;
         }
-        
-        .external-icon {
-            font-size: 16px;
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
+        51%,
+        100% {
+          opacity: 0;
         }
-        
-        .external-name {
-            font-weight: 700;
-            flex: 1;
-        }
-        
-        .external-desc {
-            font-size: 12px;
-            color: #666;
-            font-style: italic;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 14px;
-            color: #666;
-            animation: blink 1s linear infinite;
-        }
-        
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header-compact">
-            <div class="castle">🏯</div>
-            <h1>🚀 <span class="greg">Greg</span><span class="zone">Zone</span> 🚀</h1>
-            <div class="marquee">
-                <marquee behavior="scroll" direction="left" scrollamount="6">
-                    🎉 Get in the GregZone - Sponsored by Milo! 🐈
-                </marquee>
-            </div>
+      <!-- Header -->
+      <div class="header-compact">
+        <div class="castle">🏯</div>
+        <h1>🚀 <span class="greg">Greg</span><span class="zone">Zone</span> 🚀</h1>
+        <div class="marquee">
+          <marquee behavior="scroll" direction="left" scrollamount="6">
+            🎉 Get in the GregZone - Sponsored by Milo! 🐈
+          </marquee>
         </div>
-        
-        <!-- Compact System Stats at Top -->
-        <div class="system-stats-compact">
-            <div class="nav-side nav-side-left" onclick="switchView('prev')"></div>
-            <div class="nav-side nav-side-right" onclick="switchView('next')"></div>
-            
-            <div class="stats-header">
-                <a href="//greg-zone:9006/d/gregzone-system/gregzone-system-overview?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all" class="stats-header-link" target="_blank" id="stats-header-link">
-                    📊 Monitoring & Stats
-                </a>
-            </div>
-            
-            <!-- Stats Container with Sliding Animation -->
-            <div class="stats-container">
-                <!-- System Stats View -->
-                <div class="stats-row" id="system-stats-view">
-                    <div class="stat-item">
-                        <span class="stat-icon">⚡</span>
-                        <span class="stat-value" id="cpu-usage">Loading...</span>
-                        <span class="stat-label">CPU</span>
-                    </div>
-                    <div class="stat-item stat-item-clickable" id="memory-stat" onclick="toggleMemoryDisplay()">
-                        <span class="stat-icon">🧠</span>
-                        <span class="stat-value" id="memory-usage">Loading...</span>
-                        <span class="stat-label" id="memory-label">VM RAM</span>
-                        <span class="dropdown-arrow">🔄</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">🕐</span>
-                        <span class="stat-value" id="last-updated">Never</span>
-                        <span class="stat-label">Updated</span>
-                    </div>
-                    <div class="stat-item stat-item-clickable" id="container-stat" onclick="toggleContainerList()">
-                        <span class="stat-icon">🐳</span>
-                        <span class="stat-value" id="container-count">Loading...</span>
-                        <span class="stat-label">Containers</span>
-                        <span class="dropdown-arrow">▼</span>
-                    </div>
-                </div>
-                
-                <!-- Minecraft Stats View -->
-                <div class="stats-row" id="minecraft-stats-view">
-                    <div class="stat-item">
-                        <span class="stat-icon">🎮</span>
-                        <span class="stat-value" id="minecraft-status">Loading...</span>
-                        <span class="stat-label">Server Status</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">👥</span>
-                        <span class="stat-value" id="minecraft-players">Loading...</span>
-                        <span class="stat-label">Players</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">📊</span>
-                        <span class="stat-value" id="minecraft-version">Loading...</span>
-                        <span class="stat-label">Version</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">⚡</span>
-                        <span class="stat-value" id="minecraft-response">Loading...</span>
-                        <span class="stat-label">Response Time</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">🧠</span>
-                        <span class="stat-value" id="minecraft-memory">Loading...</span>
-                        <span class="stat-label">Memory Usage</span>
-                    </div>
-                    <div class="stat-item stat-item-clickable" onclick="copyToClipboard('monday-nail.gl.at.ply.gg:12354')">
-                        <span class="stat-icon">🌐</span>
-                        <span class="stat-value">monday-nail.gl.at.ply.gg:12354</span>
-                        <span class="dropdown-arrow">📋</span>
-                    </div>
-                    <div class="stat-item stat-item-clickable" onclick="window.open('//greg-zone:9006/d/minecraft-monitoring/minecraft-server-monitoring?orgId=1&from=now-1h&to=now&timezone=browser', '_blank')">
-                        <span class="stat-icon">📈</span>
-                        <span class="stat-value">Monitoring</span>
-                        <span class="stat-label">Dashboard</span>
-                        <span class="dropdown-arrow">🔗</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Container List Dropdown -->
-            <div class="container-list" id="container-list" style="display: none;">
-                <div class="container-list-header">
-                    <div class="container-list-title-section">
-                        <span class="container-list-title">🐳 Containers</span>
-                        <span class="container-list-count" id="container-list-count">0</span>
-                    </div>
-                    <div class="stats-footer-links">
-                        <a href="//greg-zone:9006/d/gregzone-containers/gregzone-container-metrics?orgId=1&from=now-1h&to=now&timezone=browser&var-container=$__all" class="container-metrics-link" target="_blank">
-                            📊 Detailed Metrics
-                        </a>
-                        <a href="//greg-zone:8084" class="container-metrics-link" target="_blank">
-                            🗄️ Redis Insight
-                        </a>
-                    </div>
-                </div>
-                <div class="container-items" id="container-items">
-                    <div class="container-item-loading">Loading containers...</div>
-                </div>
-            </div>
+      </div>
+
+      <!-- Compact System Stats at Top -->
+      <div class="system-stats-compact">
+        <div class="nav-side nav-side-left" onclick="switchView('prev')"></div>
+        <div class="nav-side nav-side-right" onclick="switchView('next')"></div>
+
+        <div class="stats-header">
+          <a
+            href="//greg-zone:9006/d/gregzone-system/gregzone-system-overview?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all"
+            class="stats-header-link"
+            target="_blank"
+            id="stats-header-link"
+          >
+            📊 Monitoring & Stats
+          </a>
         </div>
-        
-        <!-- Compact Services Grid -->
-        <div class="services-compact">
-            <h2>🏠 Services</h2>
-            <div class="services-grid">
-                <a href="//greg-zone:9001" class="service-card" role="button" target="_blank">
-                    <span class="service-icon">📁</span>
-                    <span class="service-name">Copyparty</span>
-                    <span class="service-desc">Files</span>
-                </a>
-                
-                <a href="//greg-zone:9002" class="service-card" role="button" target="_blank">
-                    <span class="service-icon">📰</span>
-                    <span class="service-name">FreshRSS</span>
-                    <span class="service-desc">RSS</span>
-                </a>
-                
-                <a href="//greg-zone:9003" class="service-card" role="button" target="_blank">
-                    <span class="service-icon">📚</span>
-                    <span class="service-name">Kiwix</span>
-                    <span class="service-desc">Wiki</span>
-                </a>
-                
-                <a href="//greg-zone:9008" class="service-card" role="button" target="_blank">
-                    <span class="service-icon">🔐</span>
-                    <span class="service-name">Exit Node</span>
-                    <span class="service-desc">VPN Config</span>
-                </a>
-                
-                <a href="//greg-zone:9004" class="service-card" role="button" target="_blank">
-                    <span class="service-icon">⬇️</span>
-                    <span class="service-name">Transmission</span>
-                    <span class="service-desc">Torrents</span>
-                </a>
+
+        <!-- Stats Container with Sliding Animation -->
+        <div class="stats-container">
+          <!-- System Stats View -->
+          <div class="stats-row" id="system-stats-view">
+            <div class="stat-item">
+              <span class="stat-icon">⚡</span>
+              <span class="stat-value" id="cpu-usage">Loading...</span>
+              <span class="stat-label">CPU</span>
             </div>
-        </div>
-        
-        <!-- External Links -->
-        <div class="external-links">
-            <h2>🌍 External</h2>
-            <div class="external-grid">
-                <a href="https://greglinscheid.com" class="external-card" target="_blank">
-                    <span class="external-icon">👤</span>
-                    <span class="external-name">Personal Site</span>
-                    
-                    <span class="external-desc">My site</span>
-                </a>
-                
-                <a href="https://lambdafunk.art" class="external-card" target="_blank">
-                    <span class="external-icon">🎵</span>
-                    <span class="external-name">Lambda Funk</span>
-                    <span class="external-desc">My music</span>
-                </a>
-                
-                <a href="https://github.com/vilos92" class="external-card" target="_blank">
-                    <span class="external-icon">💻</span>
-                    <span class="external-name">GitHub</span>
-                    <span class="external-desc">My code</span>
-                </a>
+            <div class="stat-item stat-item-clickable" id="memory-stat" onclick="toggleMemoryDisplay()">
+              <span class="stat-icon">🧠</span>
+              <span class="stat-value" id="memory-usage">Loading...</span>
+              <span class="stat-label" id="memory-label">VM RAM</span>
+              <span class="dropdown-arrow">🔄</span>
             </div>
+            <div class="stat-item">
+              <span class="stat-icon">🕐</span>
+              <span class="stat-value" id="last-updated">Never</span>
+              <span class="stat-label">Updated</span>
+            </div>
+            <div class="stat-item stat-item-clickable" id="container-stat" onclick="toggleContainerList()">
+              <span class="stat-icon">🐳</span>
+              <span class="stat-value" id="container-count">Loading...</span>
+              <span class="stat-label">Containers</span>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+          </div>
+
+          <!-- Minecraft Stats View -->
+          <div class="stats-row" id="minecraft-stats-view">
+            <div class="stat-item">
+              <span class="stat-icon">🎮</span>
+              <span class="stat-value" id="minecraft-status">Loading...</span>
+              <span class="stat-label">Server Status</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">👥</span>
+              <span class="stat-value" id="minecraft-players">Loading...</span>
+              <span class="stat-label">Players</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📊</span>
+              <span class="stat-value" id="minecraft-version">Loading...</span>
+              <span class="stat-label">Version</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">⚡</span>
+              <span class="stat-value" id="minecraft-response">Loading...</span>
+              <span class="stat-label">Response Time</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🧠</span>
+              <span class="stat-value" id="minecraft-memory">Loading...</span>
+              <span class="stat-label">Memory Usage</span>
+            </div>
+            <div
+              class="stat-item stat-item-clickable"
+              onclick="copyToClipboard('monday-nail.gl.at.ply.gg:12354')"
+            >
+              <span class="stat-icon">🌐</span>
+              <span class="stat-value">monday-nail.gl.at.ply.gg:12354</span>
+              <span class="dropdown-arrow">📋</span>
+            </div>
+            <div
+              class="stat-item stat-item-clickable"
+              onclick="
+                window.open(
+                  '//greg-zone:9006/d/minecraft-monitoring/minecraft-server-monitoring?orgId=1&from=now-1h&to=now&timezone=browser',
+                  '_blank'
+                )
+              "
+            >
+              <span class="stat-icon">📈</span>
+              <span class="stat-value">Monitoring</span>
+              <span class="stat-label">Dashboard</span>
+              <span class="dropdown-arrow">🔗</span>
+            </div>
+          </div>
         </div>
-        
-        <div class="footer">
-            Made with ❤️ and Comic Sans
+
+        <!-- Container List Dropdown -->
+        <div class="container-list" id="container-list" style="display: none">
+          <div class="container-list-header">
+            <div class="container-list-title-section">
+              <span class="container-list-title">🐳 Containers</span>
+              <span class="container-list-count" id="container-list-count">0</span>
+            </div>
+            <div class="stats-footer-links">
+              <a
+                href="//greg-zone:9006/d/gregzone-containers/gregzone-container-metrics?orgId=1&from=now-1h&to=now&timezone=browser&var-container=$__all"
+                class="container-metrics-link"
+                target="_blank"
+              >
+                📊 Detailed Metrics
+              </a>
+              <a href="//greg-zone:8084" class="container-metrics-link" target="_blank"> 🗄️ Redis Insight </a>
+            </div>
+          </div>
+          <div class="container-items" id="container-items">
+            <div class="container-item-loading">Loading containers...</div>
+          </div>
         </div>
+      </div>
+
+      <!-- Compact Services Grid -->
+      <div class="services-compact">
+        <h2>🏠 Services</h2>
+        <div class="services-grid">
+          <a href="//greg-zone:9001" class="service-card" role="button" target="_blank">
+            <span class="service-icon">📁</span>
+            <span class="service-name">Copyparty</span>
+            <span class="service-desc">Files</span>
+          </a>
+
+          <a href="//greg-zone:9002" class="service-card" role="button" target="_blank">
+            <span class="service-icon">📰</span>
+            <span class="service-name">FreshRSS</span>
+            <span class="service-desc">RSS</span>
+          </a>
+
+          <a href="//greg-zone:9003" class="service-card" role="button" target="_blank">
+            <span class="service-icon">📚</span>
+            <span class="service-name">Kiwix</span>
+            <span class="service-desc">Wiki</span>
+          </a>
+
+          <a href="//greg-zone:9008" class="service-card" role="button" target="_blank">
+            <span class="service-icon">🔐</span>
+            <span class="service-name">Exit Node</span>
+            <span class="service-desc">VPN Config</span>
+          </a>
+
+          <a href="//greg-zone:9004" class="service-card" role="button" target="_blank">
+            <span class="service-icon">⬇️</span>
+            <span class="service-name">Transmission</span>
+            <span class="service-desc">Torrents</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- External Links -->
+      <div class="external-links">
+        <h2>🌍 External</h2>
+        <div class="external-grid">
+          <a href="https://greglinscheid.com" class="external-card" target="_blank">
+            <span class="external-icon">👤</span>
+            <span class="external-name">Personal Site</span>
+
+            <span class="external-desc">My site</span>
+          </a>
+
+          <a href="https://lambdafunk.art" class="external-card" target="_blank">
+            <span class="external-icon">🎵</span>
+            <span class="external-name">Lambda Funk</span>
+            <span class="external-desc">My music</span>
+          </a>
+
+          <a href="https://github.com/vilos92" class="external-card" target="_blank">
+            <span class="external-icon">💻</span>
+            <span class="external-name">GitHub</span>
+            <span class="external-desc">My code</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer">Made with ❤️ and Comic Sans</div>
     </div>
-    
+
     <script>
-        // System stats updater
-        async function updateSystemStats() {
-            try {
-                // Fetch data from Prometheus API (via Grafana's proxy)
-                const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
-                
-                // Get CPU usage
-                const cpuResponse = await fetch(`${prometheusUrl}?query=100%20-%20(avg%20by%20(instance)%20(rate(node_cpu_seconds_total{mode="idle"}[5m]))%20*%20100)`);
-                const cpuData = await cpuResponse.json();
-                const cpuUsage = cpuData.data?.result?.[0]?.value?.[1] || '0';
-                document.getElementById('cpu-usage').textContent = `${parseFloat(cpuUsage).toFixed(1)}%`;
-                
-                // Update memory display (handles both VM and host modes)
-                await updateMemoryDisplay();
-                
-                // Get container count with deduplication (same logic as container list)
-                const containerResponse = await fetch(`${prometheusUrl}?query=container_memory_usage_bytes{job="docker-stats"}`);
-                const containerData = await containerResponse.json();
-                
-                if (containerData.data?.result && containerData.data.result.length > 0) {
-                    // Group containers by name and keep only the one with the highest memory usage (most recent/active)
-                    const containerMap = new Map();
-                    
-                    containerData.data.result.forEach(container => {
-                        const name = container.metric.name || 'Unknown';
-                        const memoryUsage = parseFloat(container.value[1]) || 0;
-                        
-                        if (!containerMap.has(name) || containerMap.get(name).memoryUsage < memoryUsage) {
-                            containerMap.set(name, {
-                                name: name,
-                                memoryUsage: memoryUsage,
-                                id: container.metric.id
-                            });
-                        }
-                    });
-                    
-                    const uniqueContainerCount = containerMap.size;
-                    document.getElementById('container-count').textContent = uniqueContainerCount;
-                } else {
-                    document.getElementById('container-count').textContent = '0';
-                }
-                
-                // Update timestamp
-                document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
-                
-            } catch (error) {
-                console.error('Error fetching system stats:', error);
-                // Show error state
-                document.getElementById('cpu-usage').textContent = 'Error';
-                document.getElementById('memory-usage').textContent = 'Error';
-                document.getElementById('container-count').textContent = 'Error';
-                document.getElementById('last-updated').textContent = 'Error';
-            }
+      // System stats updater
+      async function updateSystemStats() {
+        try {
+          // Fetch data from Prometheus API (via Grafana's proxy)
+          const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
+
+          // Get CPU usage
+          const cpuResponse = await fetch(
+            `${prometheusUrl}?query=100%20-%20(avg%20by%20(instance)%20(rate(node_cpu_seconds_total{mode="idle"}[5m]))%20*%20100)`
+          );
+          const cpuData = await cpuResponse.json();
+          const cpuUsage = cpuData.data?.result?.[0]?.value?.[1] || '0';
+          document.getElementById('cpu-usage').textContent = `${parseFloat(cpuUsage).toFixed(1)}%`;
+
+          // Update memory display (handles both VM and host modes)
+          await updateMemoryDisplay();
+
+          // Get container count with deduplication (same logic as container list)
+          const containerResponse = await fetch(
+            `${prometheusUrl}?query=container_memory_usage_bytes{job="docker-stats"}`
+          );
+          const containerData = await containerResponse.json();
+
+          if (containerData.data?.result && containerData.data.result.length > 0) {
+            // Group containers by name and keep only the one with the highest memory usage (most recent/active)
+            const containerMap = new Map();
+
+            containerData.data.result.forEach(container => {
+              const name = container.metric.name || 'Unknown';
+              const memoryUsage = parseFloat(container.value[1]) || 0;
+
+              if (!containerMap.has(name) || containerMap.get(name).memoryUsage < memoryUsage) {
+                containerMap.set(name, {
+                  name: name,
+                  memoryUsage: memoryUsage,
+                  id: container.metric.id
+                });
+              }
+            });
+
+            const uniqueContainerCount = containerMap.size;
+            document.getElementById('container-count').textContent = uniqueContainerCount;
+          } else {
+            document.getElementById('container-count').textContent = '0';
+          }
+
+          // Update timestamp
+          document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+        } catch (error) {
+          console.error('Error fetching system stats:', error);
+          // Show error state
+          document.getElementById('cpu-usage').textContent = 'Error';
+          document.getElementById('memory-usage').textContent = 'Error';
+          document.getElementById('container-count').textContent = 'Error';
+          document.getElementById('last-updated').textContent = 'Error';
         }
-        
-        // Memory display toggle
-        let showHostMemory = false;
-        const HOST_TOTAL_RAM_GB = 24; // M4 Mac Mini with 24GB RAM
-        
-        function toggleMemoryDisplay() {
-            showHostMemory = !showHostMemory;
-            updateMemoryDisplay();
+      }
+
+      // Memory display toggle
+      let showHostMemory = false;
+      const HOST_TOTAL_RAM_GB = 24; // M4 Mac Mini with 24GB RAM
+
+      function toggleMemoryDisplay() {
+        showHostMemory = !showHostMemory;
+        updateMemoryDisplay();
+      }
+
+      async function updateMemoryDisplay() {
+        try {
+          const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
+
+          if (showHostMemory) {
+            // Show GB usage and percentage of host RAM (24GB)
+            const memUsedResponse = await fetch(
+              `${prometheusUrl}?query=node_memory_MemTotal_bytes%20-%20node_memory_MemAvailable_bytes`
+            );
+            const memUsedData = await memUsedResponse.json();
+            const memUsedBytes = memUsedData.data?.result?.[0]?.value?.[1] || '0';
+            const memUsedGB = parseFloat(memUsedBytes) / (1024 * 1024 * 1024);
+            const hostPercentage = (memUsedGB / HOST_TOTAL_RAM_GB) * 100;
+
+            document.getElementById('memory-usage').textContent =
+              `${memUsedGB.toFixed(1)}GB (${hostPercentage.toFixed(1)}%)`;
+            document.getElementById('memory-label').textContent = 'Host RAM';
+          } else {
+            // Show VM RAM (current behavior)
+            const memUsedResponse = await fetch(
+              `${prometheusUrl}?query=node_memory_MemTotal_bytes%20-%20node_memory_MemAvailable_bytes`
+            );
+            const memTotalResponse = await fetch(`${prometheusUrl}?query=node_memory_MemTotal_bytes`);
+            const memUsedData = await memUsedResponse.json();
+            const memTotalData = await memTotalResponse.json();
+
+            const memUsedBytes = memUsedData.data?.result?.[0]?.value?.[1] || '0';
+            const memTotalBytes = memTotalData.data?.result?.[0]?.value?.[1] || '1';
+
+            const memUsedGB = parseFloat(memUsedBytes) / (1024 * 1024 * 1024);
+            const memPercentage = (parseFloat(memUsedBytes) / parseFloat(memTotalBytes)) * 100;
+
+            document.getElementById('memory-usage').textContent =
+              `${memUsedGB.toFixed(1)}GB (${memPercentage.toFixed(0)}%)`;
+            document.getElementById('memory-label').textContent = 'VM RAM';
+          }
+        } catch (error) {
+          console.error('Error updating memory display:', error);
+          document.getElementById('memory-usage').textContent = 'Error';
         }
-        
-        async function updateMemoryDisplay() {
-            try {
-                const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
-                
-                if (showHostMemory) {
-                    // Show GB usage and percentage of host RAM (24GB)
-                    const memUsedResponse = await fetch(`${prometheusUrl}?query=node_memory_MemTotal_bytes%20-%20node_memory_MemAvailable_bytes`);
-                    const memUsedData = await memUsedResponse.json();
-                    const memUsedBytes = memUsedData.data?.result?.[0]?.value?.[1] || '0';
-                    const memUsedGB = parseFloat(memUsedBytes) / (1024 * 1024 * 1024);
-                    const hostPercentage = (memUsedGB / HOST_TOTAL_RAM_GB) * 100; 
-                    
-                    document.getElementById('memory-usage').textContent = `${memUsedGB.toFixed(1)}GB (${hostPercentage.toFixed(1)}%)`;
-                    document.getElementById('memory-label').textContent = 'Host RAM';
-                } else {
-                    // Show VM RAM (current behavior)
-                    const memUsedResponse = await fetch(`${prometheusUrl}?query=node_memory_MemTotal_bytes%20-%20node_memory_MemAvailable_bytes`);
-                    const memTotalResponse = await fetch(`${prometheusUrl}?query=node_memory_MemTotal_bytes`);
-                    const memUsedData = await memUsedResponse.json();
-                    const memTotalData = await memTotalResponse.json();
-                    
-                    const memUsedBytes = memUsedData.data?.result?.[0]?.value?.[1] || '0';
-                    const memTotalBytes = memTotalData.data?.result?.[0]?.value?.[1] || '1';
-                    
-                    const memUsedGB = parseFloat(memUsedBytes) / (1024 * 1024 * 1024);
-                    const memPercentage = (parseFloat(memUsedBytes) / parseFloat(memTotalBytes)) * 100;
-                    
-                    document.getElementById('memory-usage').textContent = `${memUsedGB.toFixed(1)}GB (${memPercentage.toFixed(0)}%)`;
-                    document.getElementById('memory-label').textContent = 'VM RAM';
-                }
-            } catch (error) {
-                console.error('Error updating memory display:', error);
-                document.getElementById('memory-usage').textContent = 'Error';
-            }
+      }
+
+      // Container list functionality
+      let containerListExpanded = false;
+
+      function toggleContainerList() {
+        const containerList = document.getElementById('container-list');
+        const containerStat = document.getElementById('container-stat');
+
+        if (containerListExpanded) {
+          containerList.style.display = 'none';
+          containerStat.classList.remove('expanded');
+          containerListExpanded = false;
+        } else {
+          containerList.style.display = 'block';
+          containerStat.classList.add('expanded');
+          containerListExpanded = true;
+          loadContainerList();
         }
-        
-        // Container list functionality
-        let containerListExpanded = false;
-        
-        function toggleContainerList() {
-            const containerList = document.getElementById('container-list');
-            const containerStat = document.getElementById('container-stat');
-            
-            if (containerListExpanded) {
-                containerList.style.display = 'none';
-                containerStat.classList.remove('expanded');
-                containerListExpanded = false;
-            } else {
-                containerList.style.display = 'block';
-                containerStat.classList.add('expanded');
-                containerListExpanded = true;
-                loadContainerList();
-            }
-        }
-        
-        async function loadContainerList() {
-            try {
-                const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
-                const response = await fetch(`${prometheusUrl}?query=container_memory_usage_bytes{job="docker-stats"}`);
-                const data = await response.json();
-                
-                const containerItems = document.getElementById('container-items');
-                const containerCount = document.getElementById('container-list-count');
-                
-                if (data.data?.result && data.data.result.length > 0) {
-                    // Group containers by name and keep only the one with the highest memory usage (most recent/active)
-                    const containerMap = new Map();
-                    
-                    data.data.result.forEach(container => {
-                        const name = container.metric.name || 'Unknown';
-                        const memoryUsage = parseFloat(container.value[1]) || 0;
-                        
-                        if (!containerMap.has(name) || containerMap.get(name).memoryUsage < memoryUsage) {
-                            containerMap.set(name, {
-                                name: name,
-                                memoryUsage: memoryUsage,
-                                id: container.metric.id
-                            });
-                        }
-                    });
-                    
-                    // Convert map to array and sort by name
-                    const uniqueContainers = Array.from(containerMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-                    
-                    containerCount.textContent = uniqueContainers.length;
-                    // Also update the main container count stat to match
-                    document.getElementById('container-count').textContent = uniqueContainers.length;
-                    
-                    containerItems.innerHTML = uniqueContainers.map(container => {
-                        return `
+      }
+
+      async function loadContainerList() {
+        try {
+          const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
+          const response = await fetch(
+            `${prometheusUrl}?query=container_memory_usage_bytes{job="docker-stats"}`
+          );
+          const data = await response.json();
+
+          const containerItems = document.getElementById('container-items');
+          const containerCount = document.getElementById('container-list-count');
+
+          if (data.data?.result && data.data.result.length > 0) {
+            // Group containers by name and keep only the one with the highest memory usage (most recent/active)
+            const containerMap = new Map();
+
+            data.data.result.forEach(container => {
+              const name = container.metric.name || 'Unknown';
+              const memoryUsage = parseFloat(container.value[1]) || 0;
+
+              if (!containerMap.has(name) || containerMap.get(name).memoryUsage < memoryUsage) {
+                containerMap.set(name, {
+                  name: name,
+                  memoryUsage: memoryUsage,
+                  id: container.metric.id
+                });
+              }
+            });
+
+            // Convert map to array and sort by name
+            const uniqueContainers = Array.from(containerMap.values()).sort((a, b) =>
+              a.name.localeCompare(b.name)
+            );
+
+            containerCount.textContent = uniqueContainers.length;
+            // Also update the main container count stat to match
+            document.getElementById('container-count').textContent = uniqueContainers.length;
+
+            containerItems.innerHTML = uniqueContainers
+              .map(container => {
+                return `
                             <div class="container-item">
                                 <span class="container-name">${container.name}</span>
                             </div>
                         `;
-                    }).join('');
-                } else {
-                    containerItems.innerHTML = '<div class="container-item-loading">No containers found</div>';
-                    containerCount.textContent = '0';
-                }
-            } catch (error) {
-                console.error('Error loading container list:', error);
-                document.getElementById('container-items').innerHTML = '<div class="container-item-loading">Error loading containers</div>';
-            }
+              })
+              .join('');
+          } else {
+            containerItems.innerHTML = '<div class="container-item-loading">No containers found</div>';
+            containerCount.textContent = '0';
+          }
+        } catch (error) {
+          console.error('Error loading container list:', error);
+          document.getElementById('container-items').innerHTML =
+            '<div class="container-item-loading">Error loading containers</div>';
         }
-        
-        // View switching functionality
-        let currentView = 0;
-        const views = [
-            { name: '📊 Monitoring & Stats', link: '//greg-zone:9006/d/gregzone-system/gregzone-system-overview?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all' },
-            { name: '⛏️ Minecraft (Jordania)', link: '//greg-zone:9006/d/minecraft-monitoring/minecraft-server-monitoring?orgId=1&from=now-1h&to=now&timezone=browser' }
-        ];
-        
-        function switchView(direction) {
-            if (isAnimating) return;
-            isAnimating = true;
-            
-            if (direction === 'next') {
-                currentView = (currentView + 1) % views.length;
-            } else if (direction === 'prev') {
-                currentView = (currentView - 1 + views.length) % views.length;
-            }
-            
-            updateViewDisplay();
-            
-            // Reset animation lock after animation completes
+      }
+
+      // View switching functionality
+      let currentView = 0;
+      const views = [
+        {
+          name: '📊 Monitoring & Stats',
+          link: '//greg-zone:9006/d/gregzone-system/gregzone-system-overview?orgId=1&from=now-1h&to=now&timezone=browser&var-instance=$__all'
+        },
+        {
+          name: '⛏️ Minecraft (Jordania)',
+          link: '//greg-zone:9006/d/minecraft-monitoring/minecraft-server-monitoring?orgId=1&from=now-1h&to=now&timezone=browser'
+        }
+      ];
+
+      function switchView(direction) {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        if (direction === 'next') {
+          currentView = (currentView + 1) % views.length;
+        } else if (direction === 'prev') {
+          currentView = (currentView - 1 + views.length) % views.length;
+        }
+
+        updateViewDisplay();
+
+        // Reset animation lock after animation completes
+        setTimeout(() => {
+          isAnimating = false;
+        }, 600);
+      }
+
+      function updateViewDisplay() {
+        const headerLink = document.getElementById('stats-header-link');
+        const statsContainer = document.querySelector('.stats-container');
+        const systemStatsCompact = document.querySelector('.system-stats-compact');
+
+        // Update header
+        headerLink.textContent = views[currentView].name;
+        headerLink.href = views[currentView].link;
+
+        // Update container class to trigger CSS animation
+        if (currentView === 0) {
+          statsContainer.classList.remove('view-minecraft');
+          systemStatsCompact.classList.remove('view-minecraft');
+        } else {
+          statsContainer.classList.add('view-minecraft');
+          systemStatsCompact.classList.add('view-minecraft');
+        }
+      }
+
+      // Minecraft stats updater
+      async function updateMinecraftStats() {
+        try {
+          const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
+
+          // Get server health status
+          const healthResponse = await fetch(`${prometheusUrl}?query=minecraft_status_healthy`);
+          const healthData = await healthResponse.json();
+
+          // Get player count
+          const playersResponse = await fetch(`${prometheusUrl}?query=minecraft_status_players_online_count`);
+          const playersData = await playersResponse.json();
+
+          // Get max players
+          const maxPlayersResponse = await fetch(`${prometheusUrl}?query=minecraft_status_players_max_count`);
+          const maxPlayersData = await maxPlayersResponse.json();
+
+          // Get server version
+          const versionResponse = await fetch(`${prometheusUrl}?query=minecraft_status_healthy`);
+          const versionData = await versionResponse.json();
+
+          // Get response time
+          const responseTimeResponse = await fetch(
+            `${prometheusUrl}?query=minecraft_status_response_time_seconds`
+          );
+          const responseTimeData = await responseTimeResponse.json();
+
+          // Update server status
+          const healthValue = healthData.data?.result?.[0]?.value?.[1] || '0';
+          const statusElement = document.getElementById('minecraft-status');
+          if (healthValue === '1') {
+            statusElement.textContent = 'Online';
+            statusElement.style.color = '#10b981';
+          } else {
+            statusElement.textContent = 'Offline';
+            statusElement.style.color = '#ef4444';
+          }
+
+          // Update player count
+          const onlinePlayers = playersData.data?.result?.[0]?.value?.[1] || '0';
+          const maxPlayers = maxPlayersData.data?.result?.[0]?.value?.[1] || '0';
+          document.getElementById('minecraft-players').textContent = `${onlinePlayers}/${maxPlayers}`;
+
+          // Update version
+          const version = versionData.data?.result?.[0]?.metric?.server_version || 'Unknown';
+          document.getElementById('minecraft-version').textContent = version;
+
+          // Update response time
+          const responseTime = responseTimeData.data?.result?.[0]?.value?.[1] || '0';
+          const responseTimeMs = (parseFloat(responseTime) * 1000).toFixed(1);
+          document.getElementById('minecraft-response').textContent = `${responseTimeMs}ms`;
+
+          // Get Minecraft container memory usage
+          const memoryResponse = await fetch(
+            `${prometheusUrl}?query=container_memory_usage_bytes{name="minecraft"}`
+          );
+          const memoryData = await memoryResponse.json();
+
+          // Update memory usage
+          const memoryBytes = memoryData.data?.result?.[0]?.value?.[1] || '0';
+          const memoryMB = (parseFloat(memoryBytes) / (1024 * 1024)).toFixed(0);
+          document.getElementById('minecraft-memory').textContent = `${memoryMB}MB`;
+        } catch (error) {
+          console.error('Error updating Minecraft stats:', error);
+          document.getElementById('minecraft-status').textContent = 'Error';
+          document.getElementById('minecraft-players').textContent = 'Error';
+          document.getElementById('minecraft-version').textContent = 'Error';
+          document.getElementById('minecraft-response').textContent = 'Error';
+          document.getElementById('minecraft-memory').textContent = 'Error';
+        }
+      }
+
+      // Touch/swipe support for mobile
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let isAnimating = false;
+
+      document.addEventListener('touchstart', function (e) {
+        if (isAnimating) return;
+        touchStartX = e.changedTouches[0].screenX;
+      });
+
+      document.addEventListener('touchend', function (e) {
+        if (isAnimating) return;
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+
+        if (Math.abs(diff) > swipeThreshold) {
+          if (diff > 0) {
+            // Swipe left - next view
+            switchView('next');
+          } else {
+            // Swipe right - previous view
+            switchView('prev');
+          }
+        }
+      }
+
+      // Keyboard navigation
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') {
+          switchView('prev');
+        } else if (e.key === 'ArrowRight') {
+          switchView('next');
+        }
+      });
+
+      // Copy to clipboard function
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(function () {
+            // Show a brief success message
+            const originalText = event.target.closest('.stat-item').querySelector('.stat-value').textContent;
+            const valueElement = event.target.closest('.stat-item').querySelector('.stat-value');
+            valueElement.textContent = 'Copied!';
+            valueElement.style.color = '#10b981';
+
             setTimeout(() => {
-                isAnimating = false;
-            }, 600);
-        }
-        
-        function updateViewDisplay() {
-            const headerLink = document.getElementById('stats-header-link');
-            const statsContainer = document.querySelector('.stats-container');
-            const systemStatsCompact = document.querySelector('.system-stats-compact');
-            
-            // Update header
-            headerLink.textContent = views[currentView].name;
-            headerLink.href = views[currentView].link;
-            
-            // Update container class to trigger CSS animation
-            if (currentView === 0) {
-                statsContainer.classList.remove('view-minecraft');
-                systemStatsCompact.classList.remove('view-minecraft');
-            } else {
-                statsContainer.classList.add('view-minecraft');
-                systemStatsCompact.classList.add('view-minecraft');
-            }
-        }
-        
-        // Minecraft stats updater
-        async function updateMinecraftStats() {
-            try {
-                const prometheusUrl = 'http://greg-zone:9005/api/v1/query';
-                
-                // Get server health status
-                const healthResponse = await fetch(`${prometheusUrl}?query=minecraft_status_healthy`);
-                const healthData = await healthResponse.json();
-                
-                // Get player count
-                const playersResponse = await fetch(`${prometheusUrl}?query=minecraft_status_players_online_count`);
-                const playersData = await playersResponse.json();
-                
-                // Get max players
-                const maxPlayersResponse = await fetch(`${prometheusUrl}?query=minecraft_status_players_max_count`);
-                const maxPlayersData = await maxPlayersResponse.json();
-                
-                // Get server version
-                const versionResponse = await fetch(`${prometheusUrl}?query=minecraft_status_healthy`);
-                const versionData = await versionResponse.json();
-                
-                // Get response time
-                const responseTimeResponse = await fetch(`${prometheusUrl}?query=minecraft_status_response_time_seconds`);
-                const responseTimeData = await responseTimeResponse.json();
-                
-                // Update server status
-                const healthValue = healthData.data?.result?.[0]?.value?.[1] || '0';
-                const statusElement = document.getElementById('minecraft-status');
-                if (healthValue === '1') {
-                    statusElement.textContent = 'Online';
-                    statusElement.style.color = '#10b981';
-                } else {
-                    statusElement.textContent = 'Offline';
-                    statusElement.style.color = '#ef4444';
-                }
-                
-                // Update player count
-                const onlinePlayers = playersData.data?.result?.[0]?.value?.[1] || '0';
-                const maxPlayers = maxPlayersData.data?.result?.[0]?.value?.[1] || '0';
-                document.getElementById('minecraft-players').textContent = `${onlinePlayers}/${maxPlayers}`;
-                
-                // Update version
-                const version = versionData.data?.result?.[0]?.metric?.server_version || 'Unknown';
-                document.getElementById('minecraft-version').textContent = version;
-                
-                // Update response time
-                const responseTime = responseTimeData.data?.result?.[0]?.value?.[1] || '0';
-                const responseTimeMs = (parseFloat(responseTime) * 1000).toFixed(1);
-                document.getElementById('minecraft-response').textContent = `${responseTimeMs}ms`;
-                
-                // Get Minecraft container memory usage
-                const memoryResponse = await fetch(`${prometheusUrl}?query=container_memory_usage_bytes{name="minecraft"}`);
-                const memoryData = await memoryResponse.json();
-                
-                // Update memory usage
-                const memoryBytes = memoryData.data?.result?.[0]?.value?.[1] || '0';
-                const memoryMB = (parseFloat(memoryBytes) / (1024 * 1024)).toFixed(0);
-                document.getElementById('minecraft-memory').textContent = `${memoryMB}MB`;
-                
-            } catch (error) {
-                console.error('Error updating Minecraft stats:', error);
-                document.getElementById('minecraft-status').textContent = 'Error';
-                document.getElementById('minecraft-players').textContent = 'Error';
-                document.getElementById('minecraft-version').textContent = 'Error';
-                document.getElementById('minecraft-response').textContent = 'Error';
-                document.getElementById('minecraft-memory').textContent = 'Error';
-            }
-        }
-        
-        // Touch/swipe support for mobile
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let isAnimating = false;
-        
-        document.addEventListener('touchstart', function(e) {
-            if (isAnimating) return;
-            touchStartX = e.changedTouches[0].screenX;
-        });
-        
-        document.addEventListener('touchend', function(e) {
-            if (isAnimating) return;
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-        
-        function handleSwipe() {
-            const swipeThreshold = 50;
-            const diff = touchStartX - touchEndX;
-            
-            if (Math.abs(diff) > swipeThreshold) {
-                if (diff > 0) {
-                    // Swipe left - next view
-                    switchView('next');
-                } else {
-                    // Swipe right - previous view
-                    switchView('prev');
-                }
-            }
-        }
-        
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') {
-                switchView('prev');
-            } else if (e.key === 'ArrowRight') {
-                switchView('next');
-            }
-        });
-        
-        // Copy to clipboard function
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(function() {
-                // Show a brief success message
-                const originalText = event.target.closest('.stat-item').querySelector('.stat-value').textContent;
-                const valueElement = event.target.closest('.stat-item').querySelector('.stat-value');
-                valueElement.textContent = 'Copied!';
-                valueElement.style.color = '#10b981';
-                
-                setTimeout(() => {
-                    valueElement.textContent = originalText;
-                    valueElement.style.color = '#8b5cf6';
-                }, 1500);
-            }).catch(function(err) {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                
-                const valueElement = event.target.closest('.stat-item').querySelector('.stat-value');
-                const originalText = valueElement.textContent;
-                valueElement.textContent = 'Copied!';
-                valueElement.style.color = '#10b981';
-                
-                setTimeout(() => {
-                    valueElement.textContent = originalText;
-                    valueElement.style.color = '#8b5cf6';
-                }, 1500);
-            });
-        }
-        
-        // Update stats on page load and continuously in background
-        updateSystemStats();
-        updateMinecraftStats();
-        
-        // Update system stats every 30 seconds
-        setInterval(updateSystemStats, 30000);
-        
-        // Update Minecraft stats every 30 seconds
-        setInterval(updateMinecraftStats, 30000);
+              valueElement.textContent = originalText;
+              valueElement.style.color = '#8b5cf6';
+            }, 1500);
+          })
+          .catch(function (err) {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const valueElement = event.target.closest('.stat-item').querySelector('.stat-value');
+            const originalText = valueElement.textContent;
+            valueElement.textContent = 'Copied!';
+            valueElement.style.color = '#10b981';
+
+            setTimeout(() => {
+              valueElement.textContent = originalText;
+              valueElement.style.color = '#8b5cf6';
+            }, 1500);
+          });
+      }
+
+      // Update stats on page load and continuously in background
+      updateSystemStats();
+      updateMinecraftStats();
+
+      // Update system stats every 30 seconds
+      setInterval(updateSystemStats, 30000);
+
+      // Update Minecraft stats every 30 seconds
+      setInterval(updateMinecraftStats, 30000);
     </script>
-</body>
+  </body>
 </html>
