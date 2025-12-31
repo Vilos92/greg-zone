@@ -8,7 +8,7 @@ Handles infrastructure service health monitoring.
 import time
 import requests
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, Any, List
 import logging
 
@@ -228,22 +228,28 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 match_data = match.groupdict()
                 ip_address = match_data.get(ip_field) or match_data.get("remote_addr")
                 user_agent = match_data.get("http_user_agent", "Unknown")
-                
+
                 if not ip_address or ip_address == "-":
                     continue
-                
+
                 # Skip legitimate health check requests
                 if "alert-monitor-health-check" in user_agent:
                     continue
-                
+
                 # Always alert on bot 403s (nginx bot detection is reliable)
                 logger.info(
                     f"Bot blocked: {ip_address} with user agent: {user_agent[:50]}..."
                 )
-                self.send_bot_blocked_alert(config, match_data, ip_address, current_time)
+                self.send_bot_blocked_alert(
+                    config, match_data, ip_address, current_time
+                )
 
     def send_bot_blocked_alert(
-        self, config: Dict[str, Any], match_data: Dict, ip_address: str, current_time: datetime
+        self,
+        config: Dict[str, Any],
+        match_data: Dict,
+        ip_address: str,
+        current_time: datetime,
     ):
         """Send alert for bot blocked (403 response) and track IP."""
         try:
@@ -254,23 +260,27 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 location = cf_country
             else:
                 location = "Unknown"
-            
+
             # Track IP in Redis (similar to services monitor)
             ip_key = f"{config['service']}:{client_ip}"
             existing_ip_data = self.redis_client.get_ip_data(ip_key)
-            
+
             # Use cached country if available, otherwise use Cloudflare country
-            if existing_ip_data and existing_ip_data.get("country") and existing_ip_data.get("country") not in ["Unknown", None, ""]:
+            if (
+                existing_ip_data
+                and existing_ip_data.get("country")
+                and existing_ip_data.get("country") not in ["Unknown", None, ""]
+            ):
                 location = existing_ip_data.get("country")
             elif cf_country and cf_country != "":
                 location = cf_country
-            
+
             # Update IP in Redis with current timestamp and location
             self.redis_client.update_ip(ip_key, current_time, location)
-            
+
             host = match_data.get("host", "Unknown")
             user_agent = match_data.get("http_user_agent", "Unknown")
-            
+
             # Use the detailed message template from config
             discord_message = config["discord_message"].format(
                 client_ip=client_ip,
