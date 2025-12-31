@@ -59,19 +59,6 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 "track_state": True,
                 "state_key": "freshrss_public",
             },
-            # Nginx bot blocking (403 responses)
-            {
-                "name": "nginx_bot_blocked",
-                "service": "nginx-cloudflared",
-                "query": '{container_name="nginx-cloudflared"} |~ " 403 "',
-                "pattern": r'^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request_uri>\S+) (?P<protocol>\S+)" (?P<status>403) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)" host="(?P<host>[^"]*)" cf_ip="(?P<cf_connecting_ip>[^"]*)" cf_country="(?P<cf_country>[^"]*)" cf_ray="(?P<cf_ray>[^"]*)" real_ip="(?P<real_ip>[^"]*)" forwarded_for="(?P<forwarded_for>[^"]*)"',
-                "alert_type": "bot_blocked",
-                "discord_title": "🚫 Bot Blocked",
-                "discord_message": "**Nginx rejected a bot request**\n\n**🔗 IP Address:** `{client_ip}`\n**📍 Location:** {location}\n**🕐 Time:** {formatted_time}\n**🌐 Host:** {host}\n\n**🎯 Request Details:**\n• **Method:** {method}\n• **Path:** `{request_uri}`\n• **Status:** 403 (Forbidden)\n• **Protocol:** {protocol}\n\n**🤖 User Agent:**\n```{http_user_agent}```\n\n**🔗 Referrer:** {http_referer}\n**☁️ Cloudflare Ray ID:** {cf_ray}",
-                "color": 0xFFAA00,
-                "track_state": False,
-                "ip_field": "forwarded_for",
-            },
         ]
 
         super().__init__(alert_configs, "infrastructure")
