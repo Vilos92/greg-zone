@@ -29,7 +29,7 @@ Personal infrastructure setup using Docker Compose, including:
 - Docker and Docker Compose.
 - External drives mounted:
   - `/Volumes/T7/Vaults` - Main data vaults (required for copyparty, kiwix).
-  - `/Volumes/Wokyis M.2 SSD - Storage/Vaults` - GregZone Vault + Hobby Vault (required for copyparty, freshrss, transmission, minecraft).
+  - `/Volumes/Wokyis M.2 SSD - Storage/Vaults` - GregZone Vault, Hobby Vault, Cloud Vault (required for copyparty, freshrss, transmission, minecraft).
 - Environment variables in `.env` file (see AGENTS.md for full list).
 - Tailscale for private network access.
 
