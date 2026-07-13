@@ -2,7 +2,7 @@
 
 Personal infrastructure setup using Docker Compose, including:
 
-- **Services**: copyparty, FreshRSS, Kiwix, Transmission, Minecraft
+- **Services**: copyparty, FreshRSS, Kiwix, Transmission, Minecraft, Hermes Agent
 - **Monitoring**: Prometheus, Grafana, Loki, Promtail, Alertmanager, Node Exporter, cAdvisor, Docker Stats Exporter, MC Monitor
 - **Networking**: Tailscale, Cloudflare tunnels, Nginx reverse proxies
 - **Alerting**: Custom alert monitors with Discord webhooks
@@ -62,6 +62,8 @@ See `./docker-services.sh help` for all available commands:
 - Grafana: http://greg-zone:9006
 - cAdvisor: http://greg-zone:9007
 - Redis Commander: http://greg-zone:8084
+- Prowlarr: http://greg-zone:9009
+- Hermes: http://greg-zone:9010
 
 ### Public Access (via Cloudflare)
 

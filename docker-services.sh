@@ -126,6 +126,7 @@ start_services() {
     echo -e "   • Kiwix:         http://greg-zone:9003"
     echo -e "   • Transmission:  http://greg-zone:9004"
     echo -e "   • Prowlarr:      http://greg-zone:9009"
+    echo -e "   • Hermes:        http://greg-zone:9010"
     echo -e "   • Exit Node GUI: http://greg-zone:9008"
     echo -e "   • Redis Insight: http://greg-zone:8084"
     echo
@@ -222,6 +223,7 @@ show_access_info() {
     echo -e "   • Kiwix:         http://greg-zone:9003 (Offline wikis)"
     echo -e "   • Transmission:  http://greg-zone:9004 (Torrent client)"
     echo -e "   • Prowlarr:      http://greg-zone:9009 (Indexer search)"
+    echo -e "   • Hermes:        http://greg-zone:9010 (Agent dashboard)"
     echo -e "   • Prometheus:    http://greg-zone:9005 (Metrics collection)"
     echo -e "   • cAdvisor:      http://greg-zone:9007 (Container metrics)"
     echo -e "   • Redis Insight: http://greg-zone:8084 (Redis data browser)"

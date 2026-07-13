@@ -33,6 +33,7 @@ services:
       - prowlarr
       - prometheus
       - grafana
+      - hermes
     network_mode: service:tailscale
 
   cloudflared:
@@ -191,6 +192,28 @@ services:
     volumes:
       - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/prowlarr-config:/config'
     restart: unless-stopped
+
+  # Hermes Agent — Tailscale dashboard only (no host FS / Docker socket / Cloudflare).
+  # Data + secrets (Gemini, later Discord, etc.) persist under GregZone Vault/hermes.
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes
+    restart: unless-stopped
+    command: gateway run
+    environment:
+      - HERMES_DASHBOARD=1
+      - HERMES_DASHBOARD_BASIC_AUTH_USERNAME=${HERMES_DASHBOARD_BASIC_AUTH_USERNAME}
+      - HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${HERMES_DASHBOARD_BASIC_AUTH_PASSWORD}
+      - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${HERMES_DASHBOARD_BASIC_AUTH_SECRET}
+    volumes:
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/hermes:/opt/data'
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - infrastructure
+      - tailscale
 
   prometheus:
     image: prom/prometheus:latest
