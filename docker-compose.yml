@@ -586,6 +586,48 @@ services:
       - infrastructure
       - playit
 
+  # Repo-scoped self-hosted runners for Vilos92/scriptlancer (Linux containers on the Mini).
+  # Native arm64 — not linux/amd64 under Rosetta. The `test` job stays on ubuntu-latest so
+  # @webtransport-bun can load its published linux-x64-gnu napi prebuild.
+  # Workflows: runs-on: [self-hosted, linux, ARM64, greg-zone]
+  github-runner-1: &github-runner
+    image: myoung34/github-runner:latest
+    container_name: github-runner-1
+    restart: unless-stopped
+    environment:
+      - REPO_URL=https://github.com/Vilos92/scriptlancer
+      - RUNNER_SCOPE=repo
+      - ACCESS_TOKEN=${GITHUB_RUNNER_ACCESS_TOKEN}
+      - RUNNER_NAME_PREFIX=scriptlancer-greg-zone
+      - LABELS=greg-zone
+      - UNSET_CONFIG_VARS=true
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - infrastructure
+
+  github-runner-2:
+    <<: *github-runner
+    container_name: github-runner-2
+
+  github-runner-3:
+    <<: *github-runner
+    container_name: github-runner-3
+
+  github-runner-4:
+    <<: *github-runner
+    container_name: github-runner-4
+
+  github-runner-5:
+    <<: *github-runner
+    container_name: github-runner-5
+
+  github-runner-6:
+    <<: *github-runner
+    container_name: github-runner-6
+
 networks:
   cloudflare:
     driver: bridge
