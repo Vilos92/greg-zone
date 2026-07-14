@@ -587,8 +587,8 @@ services:
       - playit
 
   # Repo-scoped self-hosted runners for Vilos92/scriptlancer (Linux containers on the Mini).
-  # Native arm64 — not linux/amd64 under Rosetta. The `test` job stays on ubuntu-latest so
-  # @webtransport-bun can load its published linux-x64-gnu napi prebuild.
+  # Native arm64 (no Rosetta). scriptlancer's test job builds the missing
+  # @webtransport-bun linux-arm64-gnu napi when needed (cached after first compile).
   # Workflows: runs-on: [self-hosted, linux, ARM64, greg-zone]
   github-runner-1: &github-runner
     image: myoung34/github-runner:latest
