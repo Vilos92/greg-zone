@@ -587,8 +587,7 @@ services:
       - playit
 
   # Repo-scoped self-hosted runners for Vilos92/scriptlancer (Linux containers on the Mini).
-  # Native arm64 (no Rosetta). scriptlancer's test job builds the missing
-  # @webtransport-bun linux-arm64-gnu napi when needed (cached after first compile).
+  # Native arm64. Shared Bun download cache survives container recreate (named volume).
   # Workflows: runs-on: [self-hosted, linux, ARM64, greg-zone]
   github-runner-1: &github-runner
     image: myoung34/github-runner:latest
@@ -601,6 +600,9 @@ services:
       - RUNNER_NAME_PREFIX=scriptlancer-greg-zone
       - LABELS=greg-zone
       - UNSET_CONFIG_VARS=true
+    volumes:
+      # Shared across all six so parallel jobs warm one cache. Content-addressed Bun store.
+      - github-runner-bun-cache:/root/.bun/install/cache
     logging:
       options:
         max-size: '10m'
@@ -663,4 +665,6 @@ volumes:
   redis-data:
     driver: local
   copyparty-hists:
+    driver: local
+  github-runner-bun-cache:
     driver: local
