@@ -587,11 +587,12 @@ services:
       - playit
 
   # Repo-scoped self-hosted runners for Vilos92/scriptlancer only.
-  # Six replicas match Continuous Integration's parallel job count.
-  # Workflows should use runs-on: [self-hosted, linux, arm64, greg-zone]
-  # (self-hosted/linux/arm64 are default labels on Apple Silicon Docker).
+  # linux/amd64 (Rosetta on Apple Silicon) matches Fly + @webtransport-bun prebuilds.
+  # Six replicas match Continuous Integration's parallel job count; add more later if needed.
+  # Workflows should use runs-on: [self-hosted, linux, X64, greg-zone]
   github-runner-1: &github-runner
     image: myoung34/github-runner:latest
+    platform: linux/amd64
     container_name: github-runner-1
     restart: unless-stopped
     environment:
