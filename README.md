@@ -6,7 +6,7 @@ Personal infrastructure setup using Docker Compose, including:
 - **Monitoring**: Prometheus, Grafana, Loki, Promtail, Alertmanager, Node Exporter, cAdvisor, Docker Stats Exporter, MC Monitor
 - **Networking**: Tailscale, Cloudflare tunnels, Nginx reverse proxies
 - **Alerting**: Custom alert monitors with Discord webhooks
-- **Supporting**: Redis, Redis Commander, Playit, Minecraft Backup
+- **Supporting**: Redis, Redis Commander, Playit, Minecraft Backup, GitHub Actions runners (scriptlancer)
 
 ## Quick Start
 
