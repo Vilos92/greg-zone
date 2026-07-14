@@ -68,11 +68,6 @@ check_prerequisites() {
         print_error "Please set it to your actual Cloudflare tunnel token"
         exit 1
     fi
-
-    if [ -z "$GITHUB_RUNNER_ACCESS_TOKEN" ] || [ "$GITHUB_RUNNER_ACCESS_TOKEN" = "hunterrunner15" ]; then
-        print_warning "GITHUB_RUNNER_ACCESS_TOKEN is unset or still the .env.example placeholder"
-        print_warning "scriptlancer self-hosted runners will fail to register until it is set"
-    fi
     
     # Check external dependencies
     if [ ! -d "/Volumes/T7" ]; then
