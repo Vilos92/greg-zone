@@ -589,6 +589,9 @@ services:
   # Repo-scoped self-hosted runners for Vilos92/scriptlancer (Linux containers on the Mini).
   # Native arm64. Shared Bun download cache survives container recreate (named volume).
   # Workflows: runs-on: [self-hosted, linux, ARM64, greg-zone]
+  # Per-runner state volume + CONFIGURED_ACTIONS_RUNNER_FILES_DIR lets a restarted
+  # container reuse its registration instead of crash-looping on "already configured".
+  # If a runner is deleted on GitHub's side, wipe its state volume to force re-registration.
   github-runner-1: &github-runner
     image: myoung34/github-runner:latest
     container_name: github-runner-1
@@ -600,9 +603,12 @@ services:
       - RUNNER_NAME_PREFIX=scriptlancer-greg-zone
       - LABELS=greg-zone
       - UNSET_CONFIG_VARS=true
+      - CONFIGURED_ACTIONS_RUNNER_FILES_DIR=/runner-state
+      - DISABLE_AUTOMATIC_DEREGISTRATION=true
     volumes:
       # Shared across all six so parallel jobs warm one cache. Content-addressed Bun store.
       - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-1-state:/runner-state
     logging:
       options:
         max-size: '10m'
@@ -610,25 +616,41 @@ services:
     networks:
       - infrastructure
 
+  # YAML merge replaces the volumes list, so each runner restates it with its own state volume.
   github-runner-2:
     <<: *github-runner
     container_name: github-runner-2
+    volumes:
+      - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-2-state:/runner-state
 
   github-runner-3:
     <<: *github-runner
     container_name: github-runner-3
+    volumes:
+      - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-3-state:/runner-state
 
   github-runner-4:
     <<: *github-runner
     container_name: github-runner-4
+    volumes:
+      - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-4-state:/runner-state
 
   github-runner-5:
     <<: *github-runner
     container_name: github-runner-5
+    volumes:
+      - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-5-state:/runner-state
 
   github-runner-6:
     <<: *github-runner
     container_name: github-runner-6
+    volumes:
+      - github-runner-bun-cache:/root/.bun/install/cache
+      - github-runner-6-state:/runner-state
 
 networks:
   cloudflare:
@@ -667,4 +689,16 @@ volumes:
   copyparty-hists:
     driver: local
   github-runner-bun-cache:
+    driver: local
+  github-runner-1-state:
+    driver: local
+  github-runner-2-state:
+    driver: local
+  github-runner-3-state:
+    driver: local
+  github-runner-4-state:
+    driver: local
+  github-runner-5-state:
+    driver: local
+  github-runner-6-state:
     driver: local
