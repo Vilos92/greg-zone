@@ -215,6 +215,31 @@ services:
       - infrastructure
       - tailscale
 
+  # Sparkify Slack/Spotify bot. Talks to Slack over Socket Mode and to the Spotify
+  # Web API, both outbound, so it needs no ports and no reverse proxy entry.
+  # Do not set NODE_ENV=production: that makes winston write unrotated combined.log
+  # and error.log inside the container, which has no volume.
+  sparkify:
+    build: ./sparkify
+    container_name: sparkify
+    restart: unless-stopped
+    environment:
+      - SLACK_SIGNING_SECRET=${SLACK_SIGNING_SECRET}
+      - SLACK_BOT_TOKEN=${SLACK_BOT_TOKEN}
+      - SLACK_APP_TOKEN=${SLACK_APP_TOKEN}
+      - SLACK_GENERAL_CHANNEL=${SLACK_GENERAL_CHANNEL}
+      - SLACK_WORDLE_CHANNEL=${SLACK_WORDLE_CHANNEL}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - SPOTIFY_REFRESH_TOKEN=${SPOTIFY_REFRESH_TOKEN}
+      - SPOTIFY_PLAYLIST_NAME=${SPOTIFY_PLAYLIST_NAME}
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - infrastructure
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
