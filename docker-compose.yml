@@ -207,6 +207,14 @@ services:
       - HERMES_DASHBOARD_BASIC_AUTH_SECRET=${HERMES_DASHBOARD_BASIC_AUTH_SECRET}
     volumes:
       - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/hermes:/opt/data'
+      # Installs the local Slack adapter fork over the image's bundled copy at
+      # boot, as root, before the gateway starts. The image's own per-profile
+      # run script is regenerated on every boot, so patching there does not
+      # survive a restart. The script itself lives in the hermes data dir
+      # alongside the fork it installs; only this line is needed here, because
+      # s6 scans /etc/cont-init.d/ and that path is inside the image.
+      # See the script header for the post-`docker pull` upgrade procedure.
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/hermes/container-init/03-patch-slack-adapter:/etc/cont-init.d/03-patch-slack-adapter:ro'
     logging:
       options:
         max-size: '10m'
