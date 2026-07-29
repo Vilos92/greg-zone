@@ -217,8 +217,7 @@ services:
 
   # Sparkify Slack/Spotify bot. Talks to Slack over Socket Mode and to the Spotify
   # Web API, both outbound, so it needs no ports and no reverse proxy entry.
-  # Do not set NODE_ENV=production: that makes winston write unrotated combined.log
-  # and error.log inside the container, which has no volume.
+  # Runs TypeScript source directly on Bun, so a code change needs a rebuild.
   sparkify:
     build: ./sparkify
     container_name: sparkify
