@@ -1,19 +1,38 @@
 groups:
   - name: container_health
+    # Selectors here are deliberately exclusion-based rather than an allow-list of
+    # container names. An allow-list silently stops covering every service added after
+    # it was written, which is how sparkify, hermes, prowlarr, tailscale-exit-node and
+    # the six github-runners went unmonitored.
     rules:
-      # Container is down/stopped (using docker-stats-exporter)
+      # Any container that was reporting and then stopped. Covers every container
+      # without naming one, so a new service is monitored the day it is added.
+      # Blind spot: a container already down before Prometheus started was never in the
+      # offset window, which is what CoreContainerAbsent below covers.
       - alert: ContainerDown
-        expr: absent(container_cpu_usage_percent{job="docker-stats",name="tailscale"}) or absent(container_cpu_usage_percent{job="docker-stats",name="nginx-tailscale"}) or absent(container_cpu_usage_percent{job="docker-stats",name="cloudflared"}) or absent(container_cpu_usage_percent{job="docker-stats",name="nginx-cloudflared"}) or absent(container_cpu_usage_percent{job="docker-stats",name="copyparty"}) or absent(container_cpu_usage_percent{job="docker-stats",name="kiwix"}) or absent(container_cpu_usage_percent{job="docker-stats",name="freshrss"}) or absent(container_cpu_usage_percent{job="docker-stats",name="transmission"}) or absent(container_cpu_usage_percent{job="docker-stats",name="prometheus"}) or absent(container_cpu_usage_percent{job="docker-stats",name="alertmanager"}) or absent(container_cpu_usage_percent{job="docker-stats",name="discord-webhook"}) or absent(container_cpu_usage_percent{job="docker-stats",name="services-alert-monitor"}) or absent(container_cpu_usage_percent{job="docker-stats",name="infrastructure-alert-monitor"}) or absent(container_cpu_usage_percent{job="docker-stats",name="minecraft-alert-monitor"}) or absent(container_cpu_usage_percent{job="docker-stats",name="grafana"}) or absent(container_cpu_usage_percent{job="docker-stats",name="node-exporter"}) or absent(container_cpu_usage_percent{job="docker-stats",name="docker-stats-exporter"}) or absent(container_cpu_usage_percent{job="docker-stats",name="cadvisor"}) or absent(container_cpu_usage_percent{job="docker-stats",name="loki"}) or absent(container_cpu_usage_percent{job="docker-stats",name="promtail"}) or absent(container_cpu_usage_percent{job="docker-stats",name="minecraft"}) or absent(container_cpu_usage_percent{job="docker-stats",name="minecraft-backup"}) or absent(container_cpu_usage_percent{job="docker-stats",name="playit"}) or absent(container_cpu_usage_percent{job="docker-stats",name="mc-monitor"}) or absent(container_cpu_usage_percent{job="docker-stats",name="infra-redis"}) or absent(container_cpu_usage_percent{job="docker-stats",name="infra-redis-commander"})
-        for: 30s
+        expr: container_cpu_usage_percent{job="docker-stats"} offset 5m unless container_cpu_usage_percent{job="docker-stats"}
+        for: 2m
         labels:
           severity: critical
         annotations:
           summary: 'Container {{ $labels.name }} is down'
-          description: 'Container {{ $labels.name }} has stopped reporting metrics for more than 30 seconds.'
+          description: 'Container {{ $labels.name }} was reporting metrics and has stopped.'
+
+      # The alerting path itself, plus the services whose silence would go unnoticed.
+      # Deliberately short: this is the cold-start safety net for things that must
+      # always exist, not a register of everything running.
+      - alert: CoreContainerAbsent
+        expr: absent(container_cpu_usage_percent{job="docker-stats",name="prometheus"}) or absent(container_cpu_usage_percent{job="docker-stats",name="alertmanager"}) or absent(container_cpu_usage_percent{job="docker-stats",name="discord-webhook"}) or absent(container_cpu_usage_percent{job="docker-stats",name="docker-stats-exporter"}) or absent(container_cpu_usage_percent{job="docker-stats",name="loki"}) or absent(container_cpu_usage_percent{job="docker-stats",name="cloudflared"}) or absent(container_cpu_usage_percent{job="docker-stats",name="tailscale"}) or absent(container_cpu_usage_percent{job="docker-stats",name="sparkify"})
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'A core container is absent'
+          description: 'One of prometheus, alertmanager, discord-webhook, docker-stats-exporter, loki, cloudflared, tailscale or sparkify is not reporting metrics at all.'
 
       # Container restarting frequently
       - alert: ContainerRestarting
-        expr: rate(container_start_time_seconds{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"}[5m]) > 0.1
+        expr: rate(container_start_time_seconds{job="docker-stats",name!=""}[5m]) > 0.1
         for: 2m
         labels:
           severity: warning
@@ -23,7 +42,7 @@ groups:
 
       # High memory usage
       - alert: ContainerHighMemoryUsage
-        expr: (container_memory_usage_bytes{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"} / container_memory_limit_bytes{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"}) > 0.9
+        expr: (container_memory_usage_bytes{job="docker-stats",name!=""} / container_memory_limit_bytes{job="docker-stats",name!=""}) > 0.9
         for: 5m
         labels:
           severity: warning
@@ -33,7 +52,7 @@ groups:
 
       # High CPU usage
       - alert: ContainerHighCPUUsage
-        expr: container_cpu_usage_percent{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"} > 80
+        expr: container_cpu_usage_percent{job="docker-stats",name!=""} > 80
         for: 5m
         labels:
           severity: warning
@@ -43,7 +62,7 @@ groups:
 
       # Disk space running low
       - alert: ContainerHighDiskUsage
-        expr: (container_fs_usage_bytes{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"} / container_fs_limit_bytes{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"}) > 0.9
+        expr: (container_fs_usage_bytes{job="docker-stats",name!=""} / container_fs_limit_bytes{job="docker-stats",name!=""}) > 0.9
         for: 5m
         labels:
           severity: warning
@@ -53,13 +72,10 @@ groups:
 
       # Container OOMKilled
       - alert: ContainerOOMKilled
-        expr: increase(container_oom_events_total{job="docker-stats",name=~"tailscale|nginx-tailscale|cloudflared|nginx-cloudflared|copyparty|kiwix|freshrss|transmission|prometheus|alertmanager|discord-webhook|services-alert-monitor|infrastructure-alert-monitor|minecraft-alert-monitor|grafana|node-exporter|docker-stats-exporter|cadvisor|loki|promtail|minecraft|minecraft-backup|playit|mc-monitor|infra-redis|infra-redis-commander"}[1h]) > 0
+        expr: increase(container_oom_events_total{job="docker-stats",name!=""}[1h]) > 0
         for: 0s
         labels:
           severity: critical
         annotations:
           summary: 'Container {{ $labels.name }} was OOMKilled'
           description: 'Container {{ $labels.name }} was killed due to out of memory (OOM events detected in the last hour).'
-
-  - name: service_health
-    rules:

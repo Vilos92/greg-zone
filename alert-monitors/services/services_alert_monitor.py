@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """
 Services Alert Monitor
-Monitors nginx, copyparty, freshrss, kiwix, and transmission services.
-Handles suspicious activity detection, user activity monitoring, and health checks.
+
+Log-derived activity notifications, read from Loki. Container liveness, restarts and
+resource limits are covered by prometheus/container_alerts.yml instead, for every
+container rather than a listed few.
+
+Currently checks:
+  - copyparty: user activity
+  - nginx-cloudflared / nginx-tailscale: requests from a new IP
+  - nginx-*: 4xx and 5xx responses
+
+There are deliberately no kiwix or transmission checks here. An earlier version of
+this docstring claimed them, which made the gap invisible.
 """
 
 import os
