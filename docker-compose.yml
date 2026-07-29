@@ -243,6 +243,21 @@ services:
       - SPARKIFY_DB_PATH=/opt/data/sparkify.db
     volumes:
       - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/sparkify:/opt/data'
+    # Reports 503 when the Slack socket is closed, which the HTTP server alone cannot
+    # tell you. Docker only surfaces the status — the in-process watchdog is what
+    # exits a wedged bot so `unless-stopped` can rebuild it.
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          'process.exit((await fetch("http://localhost:8080/health")).ok ? 0 : 1)'
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     logging:
       options:
         max-size: '10m'
