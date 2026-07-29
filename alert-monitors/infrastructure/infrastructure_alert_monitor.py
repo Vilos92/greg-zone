@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """
 Infrastructure Alert Monitor with Redis persistence
-Monitors the monitoring infrastructure: loki, prometheus, grafana, alertmanager, etc.
-Handles infrastructure service health monitoring.
+
+Reachability checks for the services exposed publicly through Cloudflare, where being
+up in Docker does not prove the tunnel and proxy in front of them still work.
+
+Currently checks:
+  - copyparty: public health
+  - freshrss: public health
+
+Loki, prometheus, grafana and alertmanager are not checked here despite an earlier
+version of this docstring claiming them. Their liveness comes from
+prometheus/container_alerts.yml, which covers every container.
 """
 
 import time
