@@ -7,11 +7,20 @@ groups:
     rules:
       # Any container that was reporting and then stopped. Covers every container
       # without naming one, so a new service is monitored the day it is added.
+      #
+      # The `and on()` clause suppresses this whole rule while docker-stats-exporter is
+      # itself absent. Without it, restarting the exporter drops every series at once
+      # and reports the entire estate as down; a full redeploy was observed pending 35
+      # of these before the exporter finished repopulating. The exporter going away is
+      # still caught, by CoreContainerAbsent below.
+      #
       # Blind spot: a container already down before Prometheus started was never in the
-      # offset window, which is what CoreContainerAbsent below covers.
+      # offset window, which CoreContainerAbsent also covers for the critical few.
       - alert: ContainerDown
-        expr: container_cpu_usage_percent{job="docker-stats"} offset 5m unless container_cpu_usage_percent{job="docker-stats"}
-        for: 2m
+        expr: (container_cpu_usage_percent{job="docker-stats"} offset 5m unless container_cpu_usage_percent{job="docker-stats"}) and on() (count(container_cpu_usage_percent{job="docker-stats",name="docker-stats-exporter"}) > 0)
+        # Five minutes rather than two, so a slow exporter restart cannot page about
+        # containers that are running fine.
+        for: 5m
         labels:
           severity: critical
         annotations:
