@@ -1,0 +1,3 @@
+[submodule "sparkify"]
+	path = sparkify
+	url = git@github.com:Vilos92/sparkify.git
