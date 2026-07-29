@@ -232,6 +232,9 @@ services:
       - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
       - SPOTIFY_REFRESH_TOKEN=${SPOTIFY_REFRESH_TOKEN}
       - SPOTIFY_PLAYLIST_NAME=${SPOTIFY_PLAYLIST_NAME}
+      - SPARKIFY_DB_PATH=/opt/data/sparkify.db
+    volumes:
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/sparkify:/opt/data'
     logging:
       options:
         max-size: '10m'
