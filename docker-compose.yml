@@ -34,6 +34,7 @@ services:
       - prometheus
       - grafana
       - hermes
+      - woodpecker-server
     network_mode: service:tailscale
 
   cloudflared:
@@ -60,6 +61,7 @@ services:
       - copyparty
       - freshrss
       - kiwix
+      - woodpecker-server
     networks:
       cloudflare:
         ipv4_address: 172.19.0.10
@@ -636,71 +638,77 @@ services:
       - infrastructure
       - playit
 
-  # Repo-scoped self-hosted runners for Vilos92/scriptlancer (Linux containers on the Mini).
-  # Native arm64. Shared Bun download cache survives container recreate (named volume).
-  # Workflows: runs-on: [self-hosted, linux, ARM64, greg-zone]
-  # Per-runner state volume + CONFIGURED_ACTIONS_RUNNER_FILES_DIR lets a restarted
-  # container reuse its registration instead of crash-looping on "already configured".
-  # If a runner is deleted on GitHub's side, wipe its state volume to force re-registration.
-  github-runner-1: &github-runner
-    image: myoung34/github-runner:latest
-    container_name: github-runner-1
+  # Woodpecker CI — one instance serving any of Greg's GitHub repos (per-repo
+  # opt-in from the UI). UI is Tailscale-only (http://greg-zone:9011 via
+  # nginx-tailscale); GitHub webhooks reach it publicly through the Cloudflare
+  # tunnel, which forwards only /api/hook (see nginx-cloudflare.conf).
+  # GitHub connection is a classic OAuth app (GitHub Apps are unsupported by
+  # Woodpecker); callback URL must be http://greg-zone:9011/authorize.
+  # No host ports: agents connect over the internal network, nginx proxies the UI.
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v3.17.0
+    container_name: woodpecker-server
     restart: unless-stopped
     environment:
-      - REPO_URL=https://github.com/Vilos92/scriptlancer
-      - RUNNER_SCOPE=repo
-      - ACCESS_TOKEN=${GITHUB_RUNNER_ACCESS_TOKEN}
-      - RUNNER_NAME_PREFIX=scriptlancer-greg-zone
-      - LABELS=greg-zone
-      - UNSET_CONFIG_VARS=true
-      - CONFIGURED_ACTIONS_RUNNER_FILES_DIR=/runner-state
-      - DISABLE_AUTOMATIC_DEREGISTRATION=true
+      - WOODPECKER_HOST=http://greg-zone:9011
+      # Public URL GitHub delivers webhooks to; only /api/hook is exposed there.
+      - WOODPECKER_EXPERT_WEBHOOK_HOST=https://woodpecker.greglinscheid.com
+      - WOODPECKER_GITHUB=true
+      - WOODPECKER_GITHUB_CLIENT=${WOODPECKER_GITHUB_CLIENT}
+      - WOODPECKER_GITHUB_SECRET=${WOODPECKER_GITHUB_SECRET}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      # Signs agent session tokens; persisting it keeps agents authenticated
+      # across server restarts (server logs a warning if unset).
+      - WOODPECKER_GRPC_SECRET=${WOODPECKER_GRPC_SECRET}
+      # No open registration; only the admin GitHub account below can log in usefully.
+      - WOODPECKER_OPEN=false
+      - WOODPECKER_ADMIN=Vilos92
+      # Unauthenticated /metrics on an internal-only port so the committed
+      # prometheus.yml needs no bearer token. Not published to the host.
+      - WOODPECKER_METRICS_SERVER_ADDR=:9001
     volumes:
-      # Shared across all six so parallel jobs warm one cache. Content-addressed Bun store.
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-1-state:/runner-state
+      # SQLite DB + server state.
+      - woodpecker-server-data:/var/lib/woodpecker
     logging:
       options:
         max-size: '10m'
         max-file: '3'
     networks:
       - infrastructure
+      - tailscale
+      - cloudflare
 
-  # YAML merge replaces the volumes list, so each runner restates it with its own state volume.
-  github-runner-2:
-    <<: *github-runner
-    container_name: github-runner-2
+  # Runs each pipeline step as a sibling container via the host Docker socket
+  # (root-equivalent on the Docker VM — keep repos "untrusted" in Woodpecker
+  # unless a pipeline genuinely needs privileged features).
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v3.17.0
+    container_name: woodpecker-agent
+    restart: unless-stopped
+    command: agent
+    depends_on:
+      - woodpecker-server
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+      - WOODPECKER_BACKEND=docker
+      # Parallel workflows on this one agent; sized for scriptlancer's fan-out.
+      - WOODPECKER_MAX_WORKFLOWS=6
+      # Mounted into every pipeline step container so `bun install` stays warm
+      # across pipelines. Content-addressed store, safe to share across repos.
+      # The plain-named volume is auto-created by Docker, outside compose's
+      # lifecycle.
+      - WOODPECKER_BACKEND_DOCKER_VOLUMES=woodpecker-bun-cache:/root/.bun/install/cache
     volumes:
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-2-state:/runner-state
-
-  github-runner-3:
-    <<: *github-runner
-    container_name: github-runner-3
-    volumes:
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-3-state:/runner-state
-
-  github-runner-4:
-    <<: *github-runner
-    container_name: github-runner-4
-    volumes:
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-4-state:/runner-state
-
-  github-runner-5:
-    <<: *github-runner
-    container_name: github-runner-5
-    volumes:
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-5-state:/runner-state
-
-  github-runner-6:
-    <<: *github-runner
-    container_name: github-runner-6
-    volumes:
-      - github-runner-bun-cache:/root/.bun/install/cache
-      - github-runner-6-state:/runner-state
+      # Persists the agent's registration identity across recreates.
+      - woodpecker-agent-config:/etc/woodpecker
+      - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - infrastructure
 
 networks:
   cloudflare:
@@ -738,17 +746,7 @@ volumes:
     driver: local
   copyparty-hists:
     driver: local
-  github-runner-bun-cache:
+  woodpecker-server-data:
     driver: local
-  github-runner-1-state:
-    driver: local
-  github-runner-2-state:
-    driver: local
-  github-runner-3-state:
-    driver: local
-  github-runner-4-state:
-    driver: local
-  github-runner-5-state:
-    driver: local
-  github-runner-6-state:
+  woodpecker-agent-config:
     driver: local
