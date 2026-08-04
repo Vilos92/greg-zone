@@ -7,6 +7,7 @@ Personal infrastructure setup using Docker Compose, including:
 - **Networking**: Tailscale, Cloudflare tunnels, Nginx reverse proxies
 - **Alerting**: Custom alert monitors with Discord webhooks
 - **Supporting**: Redis, Redis Commander, Playit, Minecraft Backup, GitHub Actions runners (scriptlancer, compose)
+- **CI**: Woodpecker CI (server + agent, per-repo opt-in for any GitHub repo)
 
 ## Quick Start
 
@@ -64,12 +65,14 @@ See `./docker-services.sh help` for all available commands:
 - Redis Commander: http://greg-zone:8084
 - Prowlarr: http://greg-zone:9009
 - Hermes: http://greg-zone:9010
+- Woodpecker: http://greg-zone:9011
 
 ### Public Access (via Cloudflare)
 
 - Copyparty: https://copyparty.greglinscheid.com
 - FreshRSS: https://freshrss.greglinscheid.com
 - Kiwix: https://kiwix.greglinscheid.com
+- Woodpecker webhooks: https://woodpecker.greglinscheid.com (GitHub `/api/hook` only; all other paths refused)
 
 ## Structure
 
@@ -83,6 +86,7 @@ See `./docker-services.sh help` for all available commands:
 - `grafana/` - Grafana dashboards and provisioning.
 - `loki/` - Loki log aggregation config.
 - `minecraft/` - Minecraft server and backup configuration.
+- `ci/` - Locally built images for Woodpecker pipeline steps (e.g. `bun-git`; never pushed to a registry, rebuild instructions in each Dockerfile).
 - `nginx/` - Nginx reverse proxy configs (Tailscale and Cloudflare).
 - `prometheus/` - Prometheus configuration.
 - `promtail/` - Promtail log shipping config.
