@@ -31,13 +31,13 @@ groups:
       # Deliberately short: this is the cold-start safety net for things that must
       # always exist, not a register of everything running.
       - alert: CoreContainerAbsent
-        expr: absent(container_cpu_usage_percent{job="docker-stats",name="prometheus"}) or absent(container_cpu_usage_percent{job="docker-stats",name="alertmanager"}) or absent(container_cpu_usage_percent{job="docker-stats",name="discord-webhook"}) or absent(container_cpu_usage_percent{job="docker-stats",name="docker-stats-exporter"}) or absent(container_cpu_usage_percent{job="docker-stats",name="loki"}) or absent(container_cpu_usage_percent{job="docker-stats",name="cloudflared"}) or absent(container_cpu_usage_percent{job="docker-stats",name="tailscale"}) or absent(container_cpu_usage_percent{job="docker-stats",name="sparkify"})
+        expr: absent(container_cpu_usage_percent{job="docker-stats",name="prometheus"}) or absent(container_cpu_usage_percent{job="docker-stats",name="alertmanager"}) or absent(container_cpu_usage_percent{job="docker-stats",name="discord-webhook"}) or absent(container_cpu_usage_percent{job="docker-stats",name="docker-stats-exporter"}) or absent(container_cpu_usage_percent{job="docker-stats",name="loki"}) or absent(container_cpu_usage_percent{job="docker-stats",name="cloudflared"}) or absent(container_cpu_usage_percent{job="docker-stats",name="tailscale"}) or absent(container_cpu_usage_percent{job="docker-stats",name="sparkify"}) or absent(container_cpu_usage_percent{job="docker-stats",name="woodpecker-server"}) or absent(container_cpu_usage_percent{job="docker-stats",name="woodpecker-agent"})
         for: 2m
         labels:
           severity: critical
         annotations:
           summary: 'A core container is absent'
-          description: 'One of prometheus, alertmanager, discord-webhook, docker-stats-exporter, loki, cloudflared, tailscale or sparkify is not reporting metrics at all.'
+          description: 'One of prometheus, alertmanager, discord-webhook, docker-stats-exporter, loki, cloudflared, tailscale, sparkify, woodpecker-server or woodpecker-agent is not reporting metrics at all. Woodpecker qualifies because CI dying is silent: pipelines queue forever and PRs simply never get checks.'
 
       # Container restarting frequently
       - alert: ContainerRestarting
