@@ -63,3 +63,11 @@ scrape_configs:
       - targets: ['mc-monitor:8080']
     scrape_interval: 15s
     metrics_path: /metrics
+
+  # Woodpecker CI (unauthenticated metrics on internal-only port 9001,
+  # see WOODPECKER_METRICS_SERVER_ADDR in docker-compose.yml)
+  - job_name: 'woodpecker'
+    static_configs:
+      - targets: ['woodpecker-server:9001']
+    scrape_interval: 30s
+    metrics_path: /metrics

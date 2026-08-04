@@ -69,9 +69,9 @@ check_prerequisites() {
         exit 1
     fi
 
-    if [ -z "$GITHUB_RUNNER_ACCESS_TOKEN" ] || [ "$GITHUB_RUNNER_ACCESS_TOKEN" = "hunterrunner15" ]; then
-        print_warning "GITHUB_RUNNER_ACCESS_TOKEN is unset or still the .env.example placeholder"
-        print_warning "scriptlancer self-hosted runners will fail to register until it is set"
+    if [ -z "$WOODPECKER_GITHUB_CLIENT" ] || [ "$WOODPECKER_GITHUB_CLIENT" = "REPLACE_ME" ]; then
+        print_warning "WOODPECKER_GITHUB_CLIENT/SECRET are unset or placeholders"
+        print_warning "Woodpecker will start but GitHub login will fail until the OAuth app credentials are set"
     fi
     
     # Check external dependencies
@@ -132,6 +132,7 @@ start_services() {
     echo -e "   • Transmission:  http://greg-zone:9004"
     echo -e "   • Prowlarr:      http://greg-zone:9009"
     echo -e "   • Hermes:        http://greg-zone:9010"
+    echo -e "   • Woodpecker:    http://greg-zone:9011"
     echo -e "   • Exit Node GUI: http://greg-zone:9008"
     echo -e "   • Redis Insight: http://greg-zone:8084"
     echo
@@ -229,6 +230,7 @@ show_access_info() {
     echo -e "   • Transmission:  http://greg-zone:9004 (Torrent client)"
     echo -e "   • Prowlarr:      http://greg-zone:9009 (Indexer search)"
     echo -e "   • Hermes:        http://greg-zone:9010 (Agent dashboard)"
+    echo -e "   • Woodpecker:    http://greg-zone:9011 (CI server)"
     echo -e "   • Prometheus:    http://greg-zone:9005 (Metrics collection)"
     echo -e "   • cAdvisor:      http://greg-zone:9007 (Container metrics)"
     echo -e "   • Redis Insight: http://greg-zone:8084 (Redis data browser)"
