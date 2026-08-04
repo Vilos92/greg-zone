@@ -69,11 +69,6 @@ check_prerequisites() {
         exit 1
     fi
 
-    if [ -z "$GITHUB_RUNNER_ACCESS_TOKEN" ] || [ "$GITHUB_RUNNER_ACCESS_TOKEN" = "hunterrunner15" ]; then
-        print_warning "GITHUB_RUNNER_ACCESS_TOKEN is unset or still the .env.example placeholder"
-        print_warning "scriptlancer self-hosted runners will fail to register until it is set"
-    fi
-
     if [ -z "$WOODPECKER_GITHUB_CLIENT" ] || [ "$WOODPECKER_GITHUB_CLIENT" = "REPLACE_ME" ]; then
         print_warning "WOODPECKER_GITHUB_CLIENT/SECRET are unset or placeholders"
         print_warning "Woodpecker will start but GitHub login will fail until the OAuth app credentials are set"
