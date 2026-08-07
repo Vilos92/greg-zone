@@ -319,6 +319,27 @@ class ServicesAlertMonitor(BaseAlertMonitor):
                 if not ip_address or ip_address == "-":
                     continue
 
+                # GitHub delivers webhooks from a large rotating IP pool, so
+                # every delivery to the woodpecker hook endpoint would fire a
+                # new-IP alert. Skip them entirely (no alert, no Redis entry);
+                # non-Hookshot traffic to this host still alerts.
+                if match_data.get("host") == "woodpecker.greglinscheid.com" and match_data.get(
+                    "http_user_agent", ""
+                ).startswith("GitHub-Hookshot/"):
+                    continue
+
+                # Edge-rejected traffic doesn't count as access: nginx's bot
+                # block answers crawlers with 403 before they reach a service,
+                # and crawlers rotate IPs so each visit fired a new-IP alert.
+                # No Redis entry either, so a later successful request from
+                # the same IP still alerts. Repeated failures from one IP are
+                # covered by the suspicious-activity rule.
+                if (
+                    config["service"] == "nginx-cloudflared"
+                    and match_data.get("status") == "403"
+                ):
+                    continue
+
                 # Check if this is a new IP
                 ip_key = f"{config['service']}:{ip_address}"
                 existing_ip_data = self.redis_client.get_ip_data(ip_key)
