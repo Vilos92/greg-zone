@@ -323,9 +323,11 @@ class ServicesAlertMonitor(BaseAlertMonitor):
                 # every delivery to the woodpecker hook endpoint would fire a
                 # new-IP alert. Skip them entirely (no alert, no Redis entry);
                 # non-Hookshot traffic to this host still alerts.
-                if match_data.get("host") == "woodpecker.greglinscheid.com" and match_data.get(
-                    "http_user_agent", ""
-                ).startswith("GitHub-Hookshot/"):
+                host = match_data.get("host")
+                user_agent = match_data.get("http_user_agent", "")
+                if host == "woodpecker.greglinscheid.com" and user_agent.startswith(
+                    "GitHub-Hookshot/"
+                ):
                     continue
 
                 # Edge-rejected traffic doesn't count as access: nginx's bot
