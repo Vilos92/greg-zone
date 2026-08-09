@@ -7,7 +7,7 @@ up in Docker does not prove the tunnel and proxy in front of them still work.
 
 Currently checks:
   - copyparty: public health
-  - freshrss: public health
+  - freshrss: internal health (host port 49153; no longer exposed via Cloudflare)
 
 Loki, prometheus, grafana and alertmanager are not checked here despite an earlier
 version of this docstring claiming them. Their liveness comes from
@@ -54,15 +54,15 @@ class InfrastructureAlertMonitor(BaseAlertMonitor):
                 "state_key": "copyparty_public",
             },
             {
-                "name": "freshrss_public_health",
+                "name": "freshrss_health",
                 "service": "infra",
                 "check_type": "url_health_check",
-                "urls": ["https://freshrss.greglinscheid.com"],
+                "urls": ["http://host.docker.internal:49153"],
                 "alert_type": "service_health_change",
                 "discord_title": "📰 FreshRSS Service Up",
-                "discord_message": "FreshRSS is now {state}!\n\n🌐 **URL:** https://freshrss.greglinscheid.com",
+                "discord_message": "FreshRSS is now {state}!\n\n🌐 **URL:** http://greg-zone:9002 (Tailscale)",
                 "discord_title_offline": "📰 FreshRSS Service Down",
-                "discord_message_offline": "FreshRSS is now offline.\n\n🌐 **URL:** https://freshrss.greglinscheid.com\n\n📝 **Description:** FreshRSS feed reader service has stopped responding",
+                "discord_message_offline": "FreshRSS is now offline.\n\n🌐 **URL:** http://greg-zone:9002 (Tailscale)\n\n📝 **Description:** FreshRSS feed reader service has stopped responding",
                 "color_online": 0x00FF00,
                 "color_offline": 0xFF0000,
                 "track_state": True,
