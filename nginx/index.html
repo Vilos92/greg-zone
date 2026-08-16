@@ -1129,6 +1129,7 @@
 
       // View switching functionality
       let currentView = 0;
+      let minecraftInterval = null;
       const views = [
         {
           name: '📊 Monitoring & Stats',
@@ -1171,9 +1172,17 @@
         if (currentView === 0) {
           statsContainer.classList.remove('view-minecraft');
           systemStatsCompact.classList.remove('view-minecraft');
+          if (minecraftInterval) {
+            clearInterval(minecraftInterval);
+            minecraftInterval = null;
+          }
         } else {
           statsContainer.classList.add('view-minecraft');
           systemStatsCompact.classList.add('view-minecraft');
+          updateMinecraftStats();
+          if (!minecraftInterval) {
+            minecraftInterval = setInterval(updateMinecraftStats, 30000);
+          }
         }
       }
 
@@ -1329,13 +1338,12 @@
 
       // Update stats on page load and continuously in background
       updateSystemStats();
-      updateMinecraftStats();
 
       // Update system stats every 30 seconds
       setInterval(updateSystemStats, 30000);
 
-      // Update Minecraft stats every 30 seconds
-      setInterval(updateMinecraftStats, 30000);
+      // Minecraft stats are fetched lazily, only while that tab is visible
+      // (see updateViewDisplay), since the pod is often intentionally down.
     </script>
   </body>
 </html>
