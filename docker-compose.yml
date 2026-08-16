@@ -403,7 +403,17 @@ services:
         max-file: '3'
 
   # Minecraft alert monitor (minecraft server)
+  #
+  # Profile-gated: this and the other four minecraft services (minecraft,
+  # minecraft-backup, playit, mc-monitor) are skipped by a plain
+  # `docker-compose up -d`. Do not start them unless Greg explicitly asks for
+  # Minecraft, and do not remove a `profiles:` key to un-gate a service.
+  # When he does ask:
+  #   COMPOSE_PROFILES=minecraft ./docker-services.sh up
+  # Re-enable the 'minecraft-monitor' scrape job in prometheus/prometheus.yml
+  # at the same time.
   minecraft-alert-monitor:
+    profiles: ['minecraft']
     build:
       context: ./alert-monitors
       dockerfile: minecraft/Dockerfile
@@ -544,6 +554,7 @@ services:
       - playit
 
   minecraft:
+    profiles: ['minecraft']
     image: itzg/minecraft-bedrock-server:latest
     platform: linux/amd64
     container_name: minecraft
@@ -576,6 +587,7 @@ services:
         ipv4_address: 172.20.0.10
 
   minecraft-backup:
+    profiles: ['minecraft']
     image: kaiede/minecraft-bedrock-backup
     container_name: minecraft-backup
     restart: unless-stopped
@@ -596,6 +608,7 @@ services:
         ipv4_address: 172.20.0.11
 
   playit:
+    profiles: ['minecraft']
     image: ghcr.io/playit-cloud/playit-agent:0.16
     container_name: playit
     restart: unless-stopped
@@ -616,6 +629,7 @@ services:
         ipv4_address: 172.20.0.12
 
   mc-monitor:
+    profiles: ['minecraft']
     image: itzg/mc-monitor:latest
     container_name: mc-monitor
     restart: unless-stopped

@@ -58,11 +58,15 @@ scrape_configs:
     scrape_interval: 30s
 
   # Minecraft server monitoring via mc-monitor
-  - job_name: 'minecraft-monitor'
-    static_configs:
-      - targets: ['mc-monitor:8080']
-    scrape_interval: 15s
-    metrics_path: /metrics
+  # Intentionally commented out: mc-monitor is profile-gated in
+  # docker-compose.yml, so this job would be a permanently red target. Leave it
+  # commented unless Greg explicitly asks for Minecraft back, in which case
+  # re-enable it alongside `COMPOSE_PROFILES=minecraft ./docker-services.sh up`.
+  # - job_name: 'minecraft-monitor'
+  #   static_configs:
+  #     - targets: ['mc-monitor:8080']
+  #   scrape_interval: 15s
+  #   metrics_path: /metrics
 
   # Woodpecker CI (unauthenticated metrics on internal-only port 9001,
   # see WOODPECKER_METRICS_SERVER_ADDR in docker-compose.yml)
