@@ -13,9 +13,21 @@
 # Built locally on the Mini — never pushed to a registry. The Woodpecker agent
 # shares the host Docker daemon, so a local tag is directly usable in
 # .woodpecker.yml `image:` fields. Rebuild after a `docker system prune -a`
-# (pipelines will fail with an image-pull error) or to bump any version it pins:
+# (pipelines will fail with an image-pull error) or to bump any version it pins.
+#
+# ONE build, TWO tags — both are in use, so applying only the first leaves every
+# repo on the second failing to pull:
 #
 #   docker build -t greg-zone/bun-git:1.4.0-wt0.3.0 ci/bun-git
+#   docker tag greg-zone/bun-git:1.4.0-wt0.3.0 greg-zone/bun-git:1.4.0
+#
+# Repos that need the WebTransport addon pin the `-wt` tag (scriptlancer); the
+# rest pin the bare bun version (comment-fmt, gdex, MilkTea, greglinscheid.com,
+# lambdafunk, grynthia.cat, vilos92.com). The image is identical either way —
+# the bare tag simply does not advertise an addon its repos never load. Grep the
+# tags actually referenced before assuming this list is current:
+#
+#   grep -rh 'image: greg-zone/bun-git' ~/greg_projects/*/.woodpecker.yml | sort -u
 #
 # Keep the bun half of the tag in lockstep with the bun version repos pin via
 # `packageManager`, and the wt half with the `@webtransport-bun/webtransport`
