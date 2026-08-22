@@ -3,7 +3,9 @@
 # merge-base checks (fallow, wire-protocol gate) require, plus a real Node.js.
 # Real Node matters because Bun's bundled node shim cannot resolve some
 # packages' conditional exports (vilos92.com's `vp test` hits this via zod);
-# /usr/local/bin/node shadows the shim.
+# /usr/local/bin/node shadows the shim. Bun does not handle this as of 1.4.0:
+# drop the Node layer and vilos92.com fails three suites with `undefined is
+# not an object (evaluating 'z.object')`. Re-run that check before removing it.
 #
 # It also carries the linux-arm64 WebTransport native addon in
 # /opt/webtransport-prebuilds — see the builder stage below.
@@ -13,7 +15,7 @@
 # .woodpecker.yml `image:` fields. Rebuild after a `docker system prune -a`
 # (pipelines will fail with an image-pull error) or to bump any version it pins:
 #
-#   docker build -t greg-zone/bun-git:1.3.14-wt0.3.0 ci/bun-git
+#   docker build -t greg-zone/bun-git:1.4.0-wt0.3.0 ci/bun-git
 #
 # Keep the bun half of the tag in lockstep with the bun version repos pin via
 # `packageManager`, and the wt half with the `@webtransport-bun/webtransport`
@@ -53,7 +55,7 @@ RUN test "$(dpkg --print-architecture)" = arm64 \
     && cp /src/target/release/libnative.so \
        /opt/webtransport-prebuilds/webtransport-native.linux-arm64-gnu.node
 
-FROM oven/bun:1.3.14
+FROM oven/bun:1.4.0
 
 ARG NODE_VERSION=24.14.1
 
