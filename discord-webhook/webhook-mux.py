@@ -5,6 +5,7 @@ Receives alerts and routes them to appropriate Discord webhooks based on service
 """
 
 import os
+import re
 import json
 import requests
 import logging
@@ -23,6 +24,25 @@ DISCORD_WEBHOOKS = {
     "nginx": os.getenv("DISCORD_NGINX_WEBHOOK_URL"),
     "infra": os.getenv("DISCORD_INFRA_WEBHOOK_URL"),
 }
+
+
+def humanize_alertname(alertname):
+    """Split a CamelCase Prometheus alertname into words for the Discord title.
+
+    str.title() cannot do this: it lowercases everything after the first letter of
+    each whitespace-delimited word, so "LokiRetentionStalled" became
+    "Lokiretentionstalled". Only ContainerDown looked right, because it was
+    special-cased by hand -- every other alert had been rendering mangled.
+
+    The second alternation preserves acronyms by splitting before the last capital
+    of a run rather than between each: ContainerOOMKilled -> Container OOM Killed,
+    not Container O O M Killed.
+    """
+    return re.sub(
+        r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])",
+        " ",
+        alertname.replace("_", " "),
+    )
 
 
 def send_discord_message(service, title, message, color=0x00FF00):
@@ -95,14 +115,14 @@ def container_health_webhook():
 
             # Create title and description based on status
             if is_resolved:
-                title = f"✅ {alertname.replace('_', ' ').replace('ContainerDown', 'Container Down').title()} - Resolved"
+                title = f"✅ {humanize_alertname(alertname)} - Resolved"
                 summary = f"Container {container_name} is back up"
                 description = (
                     f"Container {container_name} has recovered and is running normally."
                 )
                 color = 0x00FF00  # Green for resolved
             else:
-                title = f"🚨 {alertname.replace('_', ' ').replace('ContainerDown', 'Container Down').title()}"
+                title = f"🚨 {humanize_alertname(alertname)}"
                 summary = annotations.get("summary", alertname)
                 description = annotations.get("description", "No description available")
                 # Set color based on severity
