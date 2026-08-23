@@ -68,6 +68,15 @@ scrape_configs:
   #   scrape_interval: 15s
   #   metrics_path: /metrics
 
+  # Loki. Scraped for compactor retention health above all else: retention_period
+  # was set for ten months while nothing enforced it, and nothing noticed because
+  # Loki was never a scrape target. See LokiRetentionStalled in container_alerts.yml.
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
   # Woodpecker CI (unauthenticated metrics on internal-only port 9001,
   # see WOODPECKER_METRICS_SERVER_ADDR in docker-compose.yml)
   - job_name: 'woodpecker'

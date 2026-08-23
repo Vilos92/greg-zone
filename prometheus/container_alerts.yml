@@ -79,6 +79,40 @@ groups:
           summary: 'Container {{ $labels.name }} high disk usage'
           description: 'Container {{ $labels.name }} is using {{ $value | humanizePercentage }} of its disk space (threshold: >90% for 5 minutes).'
 
+      # Loki enforces retention through the compactor, not through retention_period
+      # alone. With no compactor block, retention_period is inert: Loki accepts it,
+      # deletes nothing, and says so only in its own logs. That ran for ten months and
+      # grew loki-data to 17GB, because Loki was not a scrape target and nobody reads a
+      # healthy service's logs. The scrape job in prometheus.yml exists mainly for this.
+      #
+      # The metric is 0 until the first successful run, so time() - 0 is enormous and
+      # this covers "never succeeded" as well as "stopped succeeding". A restart resets
+      # it to 0, so `for` must exceed the ~10m ring-stability wait plus the 15m
+      # apply_retention_interval, or every Loki restart pages.
+      #
+      # The absent() branch is not redundant with CoreContainerAbsent. That rule catches
+      # the loki *container* vanishing; this catches the *metric* vanishing while Loki
+      # runs fine -- which is what happens if the compactor block is ever removed again.
+      # Without it the naive `time() - metric` expr has no series to evaluate and goes
+      # silent, reproducing the original ten-month failure exactly. Verified by querying
+      # the expr against a nonexistent metric: naive = silent, guarded = fires. The
+      # `and on() up{job="loki"} == 1` scopes it to "Loki is up and scraping but not
+      # reporting retention", so a Loki outage pages once via CoreContainerAbsent
+      # instead of twice.
+      #
+      # `name: loki` is what fills the container field in the Discord embed -- the mux
+      # reads labels.container_name or labels.name, and renders "Unknown Container"
+      # without it.
+      - alert: LokiRetentionStalled
+        expr: (time() - loki_compactor_apply_retention_last_successful_run_timestamp_seconds > 3600) or (absent(loki_compactor_apply_retention_last_successful_run_timestamp_seconds) and on() (up{job="loki"} == 1))
+        for: 30m
+        labels:
+          severity: warning
+          name: loki
+        annotations:
+          summary: 'Loki log retention has stopped deleting'
+          description: 'Loki has not completed a successful retention run in over an hour (one is attempted every 15 minutes), or has stopped reporting retention metrics altogether. Expired chunks are accumulating and loki-data will grow unbounded. Check `docker logs loki | grep "failed to apply retention"` -- a single unremovable chunk entry aborts the entire run, so one corrupt index table stops retention for every table.'
+
       # Container OOMKilled
       - alert: ContainerOOMKilled
         expr: increase(container_oom_events_total{job="docker-stats",name!=""}[1h]) > 0
