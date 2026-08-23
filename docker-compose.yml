@@ -14,6 +14,10 @@ services:
       - TS_AUTHKEY=${TAILSCALE_AUTH_KEY}
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_USERSPACE=false
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -35,6 +39,10 @@ services:
       - grafana
       - hermes
       - woodpecker-server
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     network_mode: service:tailscale
 
   cloudflared:
@@ -44,6 +52,10 @@ services:
     depends_on:
       - nginx-cloudflared
     command: tunnel --no-autoupdate run --token ${COPYPARTY_CLOUDFLARED_TOKEN}
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - cloudflare
 
@@ -62,6 +74,10 @@ services:
       - freshrss
       - kiwix
       - woodpecker-server
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       cloudflare:
         ipv4_address: 172.19.0.10
@@ -97,6 +113,10 @@ services:
       - '9091:9091' # Transmission web UI (accessible from host via Tailscale network)
       - '51413:51413' # Transmission torrent port
       - '51413:51413/udp' # Transmission torrent port UDP
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - tailscale
 
@@ -124,6 +144,10 @@ services:
         '--xau',
         'f,t5,j,python3,/app/copyparty-discord-hook.py,--'
       ]
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
       - tailscale
@@ -138,6 +162,10 @@ services:
       - '/Volumes/T7/Vaults/Local Vault/media/zim:/data'
     restart: unless-stopped
     command: '**/*.zim'
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - tailscale
       - cloudflare
@@ -166,6 +194,10 @@ services:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
     # All traffic (including UDP/51413) routes through tailscale-exit-node
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     network_mode: 'service:tailscale-exit-node'
     depends_on:
       - tailscale-exit-node
@@ -184,6 +216,10 @@ services:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     # Tailscale-only access via nginx-tailscale reverse proxy
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     network_mode: 'service:tailscale'
     depends_on:
       - tailscale
@@ -347,6 +383,10 @@ services:
     command: redis-server --requirepass "${INFRA_REDIS_PASSWORD}" --appendonly yes
     volumes:
       - redis-data:/data
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
 
@@ -357,6 +397,10 @@ services:
       - REDIS_HOSTS=local:infra-redis:6379:0:${INFRA_REDIS_PASSWORD}
     ports:
       - '127.0.0.1:8084:8081'
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
     depends_on:
@@ -536,6 +580,10 @@ services:
       - ./loki/loki.yml:/etc/loki/local-config.yaml:ro
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yaml
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
     networks:
       - infrastructure
 
