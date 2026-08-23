@@ -34,6 +34,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Fetching these is how a well-behaved crawler asks for the rules, not access
+# to any service. Crawlers rotate IPs, so without this every visit fires a
+# new-IP alert no matter which status nginx answers with.
+CRAWLER_PROTOCOL_PATHS = frozenset({"/robots.txt", "/sitemap.xml"})
+
+# Statuses nginx answers with when it refuses a request at the edge, before it
+# reaches a service: 403 from the bot block, 444 from the woodpecker vhost's
+# catch-all. Neither is access, and both come from IP-rotating crawlers.
+EDGE_REJECT_STATUSES = frozenset({"403", "444"})
+
+
+def is_crawler_protocol_request(match_data: Dict[str, Any]) -> bool:
+    """True if the request is for robots.txt or sitemap.xml."""
+    request_uri = match_data.get("request_uri") or ""
+    return request_uri.split("?", 1)[0] in CRAWLER_PROTOCOL_PATHS
+
 
 class ServicesAlertMonitor(BaseAlertMonitor):
     """Alert monitor for services: nginx, copyparty, freshrss, kiwix, transmission."""
@@ -257,6 +273,12 @@ class ServicesAlertMonitor(BaseAlertMonitor):
                 if self.is_legitimate_health_check_request(log["message"], match_data):
                     continue
 
+                # A crawler polling robots.txt/sitemap.xml isn't probing us.
+                # Other refused paths still count, so scanners hammering the
+                # woodpecker vhost for 444s are still caught.
+                if is_crawler_protocol_request(match_data):
+                    continue
+
                 # Log malicious requests with bad health check headers
                 health_check_value = match_data.get("health_check", "-")
                 if health_check_value and health_check_value != "-":
@@ -330,16 +352,22 @@ class ServicesAlertMonitor(BaseAlertMonitor):
                 ):
                     continue
 
-                # Edge-rejected traffic doesn't count as access: nginx's bot
-                # block answers crawlers with 403 before they reach a service,
-                # and crawlers rotate IPs so each visit fired a new-IP alert.
-                # No Redis entry either, so a later successful request from
-                # the same IP still alerts. Repeated failures from one IP are
-                # covered by the suspicious-activity rule.
+                # Edge-rejected traffic doesn't count as access: nginx refuses
+                # these before they reach a service, and crawlers rotate IPs so
+                # each visit fired a new-IP alert. No Redis entry either, so a
+                # later successful request from the same IP still alerts.
+                # Repeated failures from one IP are covered by the
+                # suspicious-activity rule.
                 if (
                     config["service"] == "nginx-cloudflared"
-                    and match_data.get("status") == "403"
+                    and match_data.get("status") in EDGE_REJECT_STATUSES
                 ):
+                    continue
+
+                # robots.txt and sitemap.xml are answered at the edge for every
+                # vhost, including a 200 on robots.txt, so status alone doesn't
+                # cover them.
+                if is_crawler_protocol_request(match_data):
                     continue
 
                 # Check if this is a new IP
