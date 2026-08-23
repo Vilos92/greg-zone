@@ -217,6 +217,12 @@ services:
       # s6 scans /etc/cont-init.d/ and that path is inside the image.
       # See the script header for the post-`docker pull` upgrade procedure.
       - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/hermes/container-init/03-patch-slack-adapter:/etc/cont-init.d/03-patch-slack-adapter:ro'
+      # Reinstalls the `ddgs` package into the image venv at boot. It is an
+      # optional dep the image does not ship, and it is the only working
+      # web_search backend here since the Nous tool gateway died 2026-08-12.
+      # Lost on `docker pull` (it lives in the image venv, not on the volume),
+      # so it must be reinstated every boot. See the script header.
+      - '/Volumes/Wokyis M.2 SSD - Storage/Vaults/GregZone Vault/hermes/container-init/04-install-ddgs:/etc/cont-init.d/04-install-ddgs:ro'
     logging:
       options:
         max-size: '10m'
