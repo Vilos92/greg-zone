@@ -81,10 +81,20 @@ scrape_configs:
         refresh_interval: 5s
 
     relabel_configs:
-      # Only target nginx containers
+      # Keep ONLY the two nginx containers. `action: keep` is what filters —
+      # a relabel rule with a non-matching regex and no action leaves its
+      # target_label unset, it does NOT drop the target, so omitting it ships
+      # every container on the host under job=nginx_access.
+      # Docker SD reports names with a leading slash and relabel regexes are
+      # fully anchored, so the '/?' is required or nothing matches at all.
       - source_labels: ['__meta_docker_container_name']
-        regex: 'nginx-(cloudflared|tailscale)'
+        regex: '/?nginx-(cloudflared|tailscale)'
+        action: keep
+      # Strip the leading slash so the label reads nginx-tailscale.
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/?(.*)'
         target_label: 'container_name'
+        replacement: '${1}'
       # Extract container ID for filename
       - source_labels: ['__meta_docker_container_id']
         target_label: 'container_id'

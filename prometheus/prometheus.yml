@@ -35,13 +35,6 @@ scrape_configs:
     scrape_interval: 5s
     metrics_path: /metrics
 
-  # Nginx metrics (if nginx-prometheus-exporter is added later)
-  - job_name: 'nginx'
-    static_configs:
-      - targets: ['nginx-tailscale:9113']
-    scrape_interval: 5s
-    metrics_path: /metrics
-
   # Note: Removed docker-services health checks as these services don't expose /health endpoints
 
   # Alertmanager monitoring
