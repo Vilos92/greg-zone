@@ -573,7 +573,12 @@ services:
       - tailscale
 
   loki:
-    image: grafana/loki:latest
+    # TEMPORARY PIN — 3.6.0+ has a compactor retention regression that aborts
+    # every retention run on chunks spanning UTC midnight (grafana/loki#23358,
+    # fix pending in #23402). 3.5.x predates the bug and still gets patches.
+    # Once a release NEWER than 3.7.6 ships with the fix merged, move to it
+    # and remove this comment (see AGENTS.md "Log and Metric Retention").
+    image: grafana/loki:3.5.12
     container_name: loki
     restart: unless-stopped
     ports:
