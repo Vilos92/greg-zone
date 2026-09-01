@@ -717,11 +717,14 @@ services:
   # tunnel, which forwards only /api/hook (see nginx-cloudflare.conf).
   # GitHub connection is a classic OAuth app (GitHub Apps are unsupported by
   # Woodpecker); callback URL must be http://greg-zone:9011/authorize.
-  # No host ports: agents connect over the internal network, nginx proxies the UI.
+  # The gRPC port binds only to loopback for the native macOS release agent.
+  # nginx proxies the UI; no public host port is exposed.
   woodpecker-server:
     image: woodpeckerci/woodpecker-server:v3.17.0
     container_name: woodpecker-server
     restart: unless-stopped
+    ports:
+      - 127.0.0.1:9000:9000
     environment:
       - WOODPECKER_HOST=http://greg-zone:9011
       # Public URL GitHub delivers webhooks to; only /api/hook is exposed there.
