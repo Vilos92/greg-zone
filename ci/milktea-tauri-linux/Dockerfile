@@ -36,6 +36,7 @@ RUN ln -s /usr/local/bin/bun /usr/local/bin/bunx \
         curl \
         file \
         git \
+        gstreamer1.0-libav \
         gstreamer1.0-plugins-bad \
         gstreamer1.0-plugins-base \
         gstreamer1.0-plugins-good \
