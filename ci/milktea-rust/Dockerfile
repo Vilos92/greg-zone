@@ -2,7 +2,9 @@
 # MilkTea/rust-toolchain.toml) with rustfmt + clippy, plus the Tauri Linux
 # system libraries clippy needs to compile the src-tauri crate. libasound2-dev
 # is included on top of the gdex-rust set because MilkTea's cpal dependency
-# links ALSA through pkg-config, and clippy compiles it.
+# links ALSA through pkg-config, and clippy compiles it. libpipewire-0.3-dev
+# and libclang-dev back cpal's native PipeWire host: the pipewire-sys crate
+# generates its bindings with bindgen (libclang) against the PipeWire headers.
 #
 # Built locally on the Mini — never pushed to a registry. The Woodpecker agent
 # shares the host Docker daemon, so a local tag is directly usable in
@@ -23,6 +25,8 @@ RUN rustup component add rustfmt clippy \
         git \
         libasound2-dev \
         libayatana-appindicator3-dev \
+        libclang-dev \
+        libpipewire-0.3-dev \
         librsvg2-dev \
         libssl-dev \
         libwebkit2gtk-4.1-dev \
