@@ -768,8 +768,13 @@ services:
       - WOODPECKER_SERVER=woodpecker-server:9000
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
       - WOODPECKER_BACKEND=docker
-      # Parallel workflows on this one agent; sized for scriptlancer's fan-out.
-      - WOODPECKER_MAX_WORKFLOWS=6
+      # Concurrent PIPELINES on this one agent, not steps: a single pipeline's
+      # step fan-out already parallelizes regardless of this value. Each
+      # scriptlancer pipeline peaks at several GB (tsgolint ~1.3 GB plus the
+      # cold vitest suite), so stacking pipelines OOM-killed lint steps inside
+      # the Docker Desktop VM (scriptlancer pipelines 607/616/617). Two keeps a
+      # push-and-PR pair moving without letting a merge train pile up the peaks.
+      - WOODPECKER_MAX_WORKFLOWS=2
       # Mounted into every pipeline step container so `bun install` stays warm
       # across pipelines. Content-addressed store, safe to share across repos.
       # The plain-named volume is auto-created by Docker, outside compose's
