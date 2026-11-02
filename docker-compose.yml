@@ -846,6 +846,11 @@ services:
       # the Docker Desktop VM (scriptlancer pipelines 607/616/617). Two keeps a
       # push-and-PR pair moving without letting a merge train pile up the peaks.
       - WOODPECKER_MAX_WORKFLOWS=2
+      # Every step container of every pipeline shares these 4 of the Docker VM's
+      # 12 CPUs. Back-to-back typerion-next pipelines took about 7 cores each and
+      # starved the host's own work (2026-11-02). CI runs slower, and the rest of
+      # the machine stays usable.
+      - WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_SET=0-3
       # Mounted into every pipeline step container so `bun install` stays warm
       # across pipelines. Content-addressed store, safe to share across repos.
       # The plain-named volume is auto-created by Docker, outside compose's
