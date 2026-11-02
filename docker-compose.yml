@@ -151,7 +151,7 @@ services:
         max-size: '10m'
         max-file: '3'
     networks:
-      - tailscale
+      - typerion-staging
 
   copyparty:
     image: copyparty/dj:latest
@@ -842,6 +842,15 @@ networks:
     ipam:
       config:
         - subnet: 172.21.0.0/24
+  # An exit node offers IPv6 to its clients whether or not it can route it, and a
+  # phone tries a site's IPv6 address first. Without IPv6 here, those requests hang.
+  typerion-staging:
+    driver: bridge
+    enable_ipv6: true
+    # IPv4 is left to Docker, since Woodpecker's pipeline networks claim 172.22 and up as they run.
+    ipam:
+      config:
+        - subnet: fd00:7e57:22::/64
 
 volumes:
   tailscale-state:
