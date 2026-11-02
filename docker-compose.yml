@@ -130,21 +130,13 @@ services:
     restart: unless-stopped
     volumes:
       - 'typerion-staging-state:/var/lib/tailscale'
-      - '/dev/net/tun:/dev/net/tun'
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    # An exit node forwards other devices' packets, which the container's
-    # network namespace refuses by default.
-    sysctls:
-      - net.ipv4.ip_forward=1
-      - net.ipv6.conf.all.forwarding=1
-      # Tailscale sets this itself on a host, but a container's /proc/sys is read-only.
-      - net.ipv4.conf.all.src_valid_mark=1
     environment:
       - TS_AUTHKEY=${TAILSCALE_TYPERION_STAGING_AUTH_KEY}
       - TS_STATE_DIR=/var/lib/tailscale
-      - TS_USERSPACE=false
+      # Userspace mode makes each client's connections itself. Forwarding them
+      # through the kernel instead left every TCP handshake half-open under
+      # Docker Desktop.
+      - TS_USERSPACE=true
       - TS_EXTRA_ARGS=--advertise-exit-node
     logging:
       options:
