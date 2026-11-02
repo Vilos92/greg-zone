@@ -39,6 +39,16 @@ container_disk_write = Gauge(
     "Container disk write bytes total",
     ["name"],
 )
+# Only containers with a healthcheck report this, and only once Docker has a verdict.
+# A healthcheck that only shows in `docker ps` goes unnoticed, so this is what lets
+# Prometheus alert on one.
+container_healthy = Gauge(
+    "container_healthy",
+    "1 if the container's Docker healthcheck passes, 0 if it fails",
+    ["name"],
+)
+
+HEALTH_VERDICTS = {"healthy": 1, "unhealthy": 0}
 
 
 def parse_cpu_percent(cpu_str):
@@ -140,6 +150,14 @@ def get_container_stats():
                 container_disk_read.labels(name=name).set(read_bytes)
                 container_disk_write.labels(name=name).set(write_bytes)
 
+                health_status = (
+                    container.attrs.get("State", {}).get("Health", {}).get("Status")
+                )
+                if health_status in HEALTH_VERDICTS:
+                    container_healthy.labels(name=name).set(
+                        HEALTH_VERDICTS[health_status]
+                    )
+
                 logger.info(f"Updated metrics for {name} ({container_id})")
 
             except Exception as e:
@@ -164,6 +182,7 @@ def cleanup_old_metrics(current_containers):
             container_network_tx,
             container_disk_read,
             container_disk_write,
+            container_healthy,
         ]
 
         for metric in all_metrics:
