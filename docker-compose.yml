@@ -120,6 +120,39 @@ services:
     networks:
       - tailscale
 
+  # Exit node for reaching Typerion's staging Workers. Their Cloudflare WAF rule
+  # allows only this home's public IP, so a device away from home picks
+  # `typerion-staging` as its exit node to reach them.
+  typerion-staging:
+    image: tailscale/tailscale:latest
+    container_name: typerion-staging
+    hostname: typerion-staging
+    restart: unless-stopped
+    volumes:
+      - 'typerion-staging-state:/var/lib/tailscale'
+      - '/dev/net/tun:/dev/net/tun'
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    # An exit node forwards other devices' packets, which the container's
+    # network namespace refuses by default.
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+      # Tailscale sets this itself on a host, but a container's /proc/sys is read-only.
+      - net.ipv4.conf.all.src_valid_mark=1
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_TYPERION_STAGING_AUTH_KEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+      - TS_EXTRA_ARGS=--advertise-exit-node
+    logging:
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - tailscale
+
   copyparty:
     image: copyparty/dj:latest
     container_name: copyparty
@@ -814,6 +847,8 @@ volumes:
   tailscale-state:
     driver: local
   tailscale-exit-node-state:
+    driver: local
+  typerion-staging-state:
     driver: local
   prometheus-data:
     driver: local
